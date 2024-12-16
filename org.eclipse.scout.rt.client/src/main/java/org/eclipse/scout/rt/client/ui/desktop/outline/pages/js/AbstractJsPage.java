@@ -9,8 +9,11 @@
  */
 package org.eclipse.scout.rt.client.ui.desktop.outline.pages.js;
 
+import java.util.List;
+
 import org.eclipse.scout.rt.client.ui.basic.table.ITable;
 import org.eclipse.scout.rt.client.ui.desktop.outline.pages.AbstractPage;
+import org.eclipse.scout.rt.client.ui.desktop.outline.pages.IPage;
 import org.eclipse.scout.rt.dataobject.IDoEntity;
 import org.eclipse.scout.rt.platform.Order;
 import org.eclipse.scout.rt.platform.annotations.ConfigProperty;
@@ -86,5 +89,10 @@ public class AbstractJsPage extends AbstractPage<ITable> implements IJsPage {
     // If there is no classId annotation, null is returned
     // If there is a classId annotation, it must match the uuid of the JavaScript page
     return ConfigurationUtility.getAnnotatedClass(getClass());
+  }
+
+  @Override
+  public List<IPage<?>> createChildPages(IDoEntity data) {
+    return null;
   }
 }
