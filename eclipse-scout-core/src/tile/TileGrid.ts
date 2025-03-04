@@ -1284,7 +1284,7 @@ export class TileGrid<TTile extends Tile = Tile> extends Widget implements TileG
     considerPlaceholders = scout.nvl(considerPlaceholders, true);
     if (viewRange.equals(this.virtualScrolling.maxViewRange())) {
       // Directly return all tiles if max view range
-      return considerPlaceholders ? this._filteredTiles : this.filteredTiles as any;
+      return (considerPlaceholders ? this._filteredTiles : this.filteredTiles) as (T extends true ? (TTile | PlaceholderTile)[] : TTile[]);
     }
 
     let tiles = [];
@@ -1699,7 +1699,7 @@ export class TileGrid<TTile extends Tile = Tile> extends Widget implements TileG
     }
     considerPlaceholders = scout.nvl(considerPlaceholders, false);
     if (!this.virtual) {
-      return considerPlaceholders ? this._filteredTiles : this.filteredTiles as any;
+      return (considerPlaceholders ? this._filteredTiles : this.filteredTiles) as (T extends true ? (TTile | PlaceholderTile)[] : TTile[]);
     }
     let tiles = [];
     this.$container.children('.tile').each((i, elem) => {
