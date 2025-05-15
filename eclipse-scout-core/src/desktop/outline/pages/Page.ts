@@ -9,8 +9,8 @@
  */
 import {
   arrays, BaseDoEntity, BookmarkSupport, BookmarkTableRowIdentifierDo, ButtonTile, ChildModelOf, Constructor, dataObjects, DoTypeResolver, EnumObject, Event, EventHandler, EventListener, EventMapOf, EventModel, EventSupport, Form,
-  HtmlComponent, icons, InitModelOf, inspector, Menu, MenuBar, ObjectIdProvider, ObjectOrChildModel, ObjectOrType, ObjectWithUuid, Outline, PageDetailMenuContributor, PageEventMap, PageModel, ParentTablePageMenuContributor,
-  PropertyChangeEvent, RequiredUnlessNotSubclass, scout, SomeRequired, strings, Table, TableRow, TableRowClickEvent, TileOutlineOverview, TileOverviewForm, TreeNode, typeName, UuidPathOptions, Widget
+  HtmlComponent, icons, InitModelOf, inspector, Menu, MenuBar, MenuOwner, ObjectIdProvider, ObjectOrType, ObjectWithUuid, Outline, PageDetailMenuContributor, PageEventMap, PageModel, ParentTablePageMenuContributor, PropertyChangeEvent,
+  RequiredUnlessNotSubclass, scout, SomeRequired, strings, Table, TableRow, TableRowClickEvent, TileOutlineOverview, TileOverviewForm, TreeNode, typeName, UuidPathOptions, Widget
 } from '../../../index';
 import $ from 'jquery';
 
@@ -678,7 +678,6 @@ export class Page extends TreeNode implements PageModel, ObjectWithUuid {
 }
 
 export type NodeType = EnumObject<typeof Page.NodeType>;
-export type MenuOwner = Widget & { menus: Menu[]; setMenus: (menus: ObjectOrChildModel<Menu>[]) => void };
 
 interface ContributedMenu extends Menu {
   /**
