@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -104,7 +104,7 @@ export class TableCompactHandler implements TableCompactHandlerModel, ObjectWith
     if (rows.length === 0) {
       return;
     }
-    let columns = this._getColumns();
+    let columns = this.getColumns();
     rows.forEach(row => this._updateValue(columns, row));
   }
 
@@ -127,7 +127,7 @@ export class TableCompactHandler implements TableCompactHandlerModel, ObjectWith
     columns.forEach((column, i) => this._processColumn(column, i, row, bean));
   }
 
-  protected _getColumns(): Column<any>[] {
+  getColumns(): Column<any>[] {
     return this.table.filterColumns(column => this._acceptColumn(column));
   }
 

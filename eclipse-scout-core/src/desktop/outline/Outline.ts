@@ -951,18 +951,6 @@ export class Outline extends Tree implements DisplayParent, OutlineModel {
         detailTable.setMenuBarVisible(false);
         this._attachDetailMenusListener(detailTable);
       }
-      // Get single selection menus from parent detail table
-      let parentPage = selectedPage.parentNode;
-      if (parentPage && parentPage.detailTable) {
-        detailTable = parentPage.detailTable;
-        menuItems = menuItems.concat(menuUtil.filter(detailTable.menus, [Table.MenuType.SingleSelection], {
-          onlyVisible: false,
-          enableDisableKeyStrokes: true,
-          defaultMenuTypes: detailTable.defaultMenuTypes
-        }));
-        detailTable.setMenuBarVisible(false);
-        this._attachDetailMenusListener(detailTable);
-      }
     }
 
     // Add table controls to nodeMenus (destroy previously created ones first to clean up correctly)
