@@ -28,10 +28,10 @@ public interface IClientSession extends ISession, IPropertyObserver {
   String PROP_LOCALE = "locale";
 
   /**
-   * Property for the shared variables. Events are fired for this property when the {@link #getSharedVariableMap()} has
+   * Property for the variable map. Events are fired for this property when the {@link #getVariableMap()} has
    * changed.
    */
-  String PROP_SHARED_VARIABLE_MAP = "sharedVariableMap";
+  String PROP_VARIABLE_MAP = "variableMap";
 
   /**
    * @return the session's {@link Locale} or <code>null</code> if not set.
@@ -125,7 +125,26 @@ public interface IClientSession extends ISession, IPropertyObserver {
    */
   void setMemoryPolicy(IMemoryPolicy memoryPolicy);
 
-  void replaceSharedVariableMapInternal(Map<String, Object> newMap);
+  /**
+   * Replaces the complete variables map with a new one.
+   *
+   * @param newMap
+   *     map to replace the current one with
+   */
+  void replaceVariableMapInternal(Map<String, Object> newMap);
+
+  /**
+   * Replaces a single variable with a new value. Adds it if it does not exist yet.
+   */
+  void replaceVariableInternal(String variableName, Object newValue);
+
+  /**
+   * Replaces multiple variables with new values. Adds the ones that do not exist yet.
+   *
+   * @param variables
+   *     map of variables that should be replaced
+   */
+  void replaceVariablesInternal(Map<String, Object> variables);
 
   /**
    * Returns the <em>one-permit</em> {@link IExecutionSemaphore} to run model jobs of this session in sequence, meaning
@@ -134,8 +153,13 @@ public interface IClientSession extends ISession, IPropertyObserver {
   IExecutionSemaphore getModelJobSemaphore();
 
   /**
-   * @return An unmodifiable {@link Set} with all property names of the {@link #getSharedVariableMap() shared variable
+   * @return An unmodifiable {@link Set} with all property names of the {@link #getVariableMap() shared variable
    * map} that should be accessible in the browser. Never returns {@code null}.
    */
-  Set<String> getExposedSharedVariables();
+  Set<String> getExposedVariables();
+
+  /**
+   * @return the variable map holding additional information used by the client session
+   */
+  Map<String, Object> getVariableMap();
 }

@@ -10,7 +10,7 @@
 import {
   AjaxCall, AjaxCallModel, App, arrays, BackgroundJobPollingStatus, BackgroundJobPollingSupport, BusyIndicator, config, Desktop, Device, Event, EventEmitter, EventHandler, FileInput, files as fileUtil, FocusManager, fonts, icons,
   InitModelOf, JsonErrorResponse, KeyStrokeManager, LayoutValidator, Locale, LocaleModel, LogLevel, MessageBox, ModelAdapter, ModelAdapterLike, ModelAdapterModel, NullWidget, ObjectFactory, ObjectFactoryOptions, objects, ObjectWithType,
-  Reconnector, RemoteEvent, ResponseQueue, scout, SessionAdapter, SessionEventMap, SessionModel, SharedVariables, SomeRequired, Status, StatusSeverity, strings, TextMap, texts, TypeDescriptor, URL, UrlAjaxSettings, UserAgent, webstorage,
+  Reconnector, RemoteEvent, ResponseQueue, scout, SessionAdapter, SessionEventMap, SessionModel, SessionVariables, SomeRequired, Status, StatusSeverity, strings, TextMap, texts, TypeDescriptor, URL, UrlAjaxSettings, UserAgent, webstorage,
   Widget
 } from '../index';
 import $ from 'jquery';
@@ -51,7 +51,7 @@ export class Session extends EventEmitter implements SessionModel, ModelAdapterL
   remoteUrl: string;
   unloadUrl: string;
   modelAdapterRegistry: Record<string, ModelAdapterLike>;
-  sharedVariableMap: Record<string, any>;
+  variableMap: Record<string, any>;
   ajaxCalls: AjaxCall[];
   asyncEvents: RemoteEvent[];
   currentEvent: RemoteEvent;
@@ -129,7 +129,7 @@ export class Session extends EventEmitter implements SessionModel, ModelAdapterL
     this.reconnector = new Reconnector(this);
     this.processingEvents = false;
     this.adapterExportEnabled = false;
-    this.sharedVariableMap = {};
+    this.variableMap = {};
     this._adapterDataCache = {};
     this._deferred = null;
     this._fatalMessagesOnScreen = {};
@@ -232,11 +232,11 @@ export class Session extends EventEmitter implements SessionModel, ModelAdapterL
   }
 
   /**
-   * @param name The name of the shared variable.
-   * @returns the value of the shared variable with given name.
+   * @param name The name of the session variable.
+   * @returns the value of the session variable with given name.
    */
-  getSharedVariable<TKey extends keyof SharedVariables & string>(name: TKey): SharedVariables[TKey] {
-    return this.sharedVariableMap[name];
+  getVariable<TKey extends keyof SessionVariables & string>(name: TKey): SessionVariables[TKey] {
+    return this.variableMap[name];
   }
 
   unregisterModelAdapter(modelAdapter: ModelAdapter) {
