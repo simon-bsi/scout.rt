@@ -195,6 +195,18 @@
     }
   }
 
+  &.optimize-width > .icon::before {
+    content: @icon-optimize-width;
+  }
+
+  &.optimize-widths > .icon::before {
+    content: @icon-optimize-widths;
+  }
+
+  &.table-header-menu-command.width {
+    width: @table-header-menu-cmd-width + @field-status-size;
+  }
+
   &.aggregation-function {
 
     &.sum > .icon::before {
