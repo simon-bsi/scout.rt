@@ -101,6 +101,7 @@ export default (): FormModel => ({
         table: {
           id: 'ColumnsTable',
           objectType: Table,
+          cssClass: 'no-menubar-separators',
           headerVisible: false,
           autoResizeColumns: true,
           checkable: true,
@@ -121,18 +122,18 @@ export default (): FormModel => ({
             menuTypes: [Table.MenuType.EmptySpace, Table.MenuType.SingleSelection, Table.MenuType.MultiSelection],
             tooltipText: '${textKey:AddColumn}'
           }, {
-            id: 'ModifyColumnMenu',
-            objectType: Menu,
-            iconId: icons.PENCIL,
-            menuTypes: [Table.MenuType.SingleSelection],
-            tooltipText: '${textKey:ModifyColumn}'
-          }, {
             id: 'RemoveColumnMenu',
             objectType: Menu,
             iconId: icons.MINUS,
             keyStroke: 'delete',
             menuTypes: [Table.MenuType.SingleSelection, Table.MenuType.MultiSelection],
             tooltipText: '${textKey:RemoveColumn}'
+          }, {
+            id: 'ModifyColumnMenu',
+            objectType: Menu,
+            iconId: icons.PENCIL,
+            menuTypes: [Table.MenuType.SingleSelection],
+            tooltipText: '${textKey:ModifyColumn}'
           }, {
             id: 'MoveColumnUpMenu',
             objectType: Menu,
