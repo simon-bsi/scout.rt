@@ -118,17 +118,20 @@ export default (): FormModel => ({
             id: 'AddColumnMenu',
             objectType: Menu,
             iconId: icons.PLUS,
+            menuTypes: [Table.MenuType.EmptySpace, Table.MenuType.SingleSelection, Table.MenuType.MultiSelection],
             tooltipText: '${textKey:AddColumn}'
           }, {
             id: 'ModifyColumnMenu',
             objectType: Menu,
             iconId: icons.PENCIL,
+            menuTypes: [Table.MenuType.SingleSelection],
             tooltipText: '${textKey:ModifyColumn}'
           }, {
             id: 'RemoveColumnMenu',
             objectType: Menu,
             iconId: icons.MINUS,
             keyStroke: 'delete',
+            menuTypes: [Table.MenuType.SingleSelection, Table.MenuType.MultiSelection],
             tooltipText: '${textKey:RemoveColumn}'
           }, {
             id: 'MoveColumnUpMenu',
@@ -137,7 +140,7 @@ export default (): FormModel => ({
             keyStroke: 'alt-up',
             menuTypes: [Table.MenuType.SingleSelection, Table.MenuType.MultiSelection],
             horizontalAlignment: 1,
-            tooltipText: '${textKey:MoveColumnUp}'
+            tooltipText: '${textKey:MoveColumnForward}'
           }, {
             id: 'MoveColumnDownMenu',
             objectType: Menu,
@@ -145,7 +148,7 @@ export default (): FormModel => ({
             keyStroke: 'alt-down',
             menuTypes: [Table.MenuType.SingleSelection, Table.MenuType.MultiSelection],
             horizontalAlignment: 1,
-            tooltipText: '${textKey:MoveColumnDown}'
+            tooltipText: '${textKey:MoveColumnBackward}'
           }]
         }
       }]
