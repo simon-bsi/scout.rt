@@ -207,7 +207,7 @@ export class TableOrganizer implements ObjectWithType {
       return false;
     }
     // Prevent removal of last column, because there may not always be a table organizer menu to add it again
-    return this.table.visibleColumns().length > (allowRemovalOfLastColumn ? 0 : 1);
+    return this.table.visibleColumns(false).length > (allowRemovalOfLastColumn ? 0 : 1);
   }
 
   removeColumns(columns: Column<any>[]) {

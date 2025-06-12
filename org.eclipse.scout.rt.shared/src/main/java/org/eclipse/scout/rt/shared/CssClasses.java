@@ -79,5 +79,5 @@ public interface CssClasses {
   /**
    * Class that can be added to menubar containers (e.g. a table) to hide the separators between menus.
    */
-  String NO_MENUBAR_SEPARATORS = "no-mandatory-separators";
+  String NO_MENUBAR_SEPARATORS = "no-menubar-separators";
 }
