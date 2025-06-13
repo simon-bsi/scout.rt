@@ -10,7 +10,6 @@
 package org.eclipse.scout.rt.client.ui.basic.table.organizer;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -584,12 +583,7 @@ public class OrganizeColumnsForm extends AbstractForm implements IOrganizeColumn
             try {
               columnsTable.setTableChanging(true);
               columnsTable.discardAllRows();
-              rowList = columnsTable.addRows(rowList);
-
-              // check visible columns
-              for (ITableRow row : rowList) {
-                columnsTable.checkRow(row, columnsTable.getKeyColumn().getValue(row).isVisible());
-              }
+              columnsTable.addRows(rowList);
             }
             finally {
               columnsTable.setTableChanging(false);
@@ -657,20 +651,6 @@ public class OrganizeColumnsForm extends AbstractForm implements IOrganizeColumn
 
             public TitleColumn getTitleColumn() {
               return getColumnSet().getColumnByClass(TitleColumn.class);
-            }
-
-            @Override
-            protected boolean getConfiguredCheckable() {
-              return true;
-            }
-
-            @Override
-            protected void execRowsChecked(Collection<? extends ITableRow> rows) {
-              if (isFormLoading()) {
-                return;
-              }
-              updateColumnVisibilityAndOrder();
-              enableDisableMenus();
             }
 
             @Override
@@ -899,7 +879,7 @@ public class OrganizeColumnsForm extends AbstractForm implements IOrganizeColumn
   }
 
   public void updateColumnVisibilityAndOrder() {
-    List<IColumn<?>> visibleColumns = getColumnsTableField().getTable().getKeyColumn().getValues(getColumnsTableField().getTable().getCheckedRows());
+    List<IColumn<?>> visibleColumns = getColumnsTableField().getTable().getKeyColumn().getValues();
     m_organizedTable.getColumnSet().setVisibleColumns(visibleColumns);
     ClientUIPreferences.getInstance().setAllTableColumnPreferences(m_organizedTable);
   }
@@ -954,11 +934,13 @@ public class OrganizeColumnsForm extends AbstractForm implements IOrganizeColumn
         modifyEnabled = true;
       }
     }
+    setEnabledAndVisible(columnsTable, AddColumnMenu.class, addEnabled);
+    setEnabledAndVisible(columnsTable, ModifyCustomColumnMenu.class, modifyEnabled);
+    setEnabledAndVisible(columnsTable, RemoveMenu.class, removeEnabled);
+
+    // The move-menus should always be visible, otherwise their position changes when row is moved to top or bottom
     columnsTable.getMenuByClass(MoveUpMenu.class).setEnabled(moveUpEnabled);
     columnsTable.getMenuByClass(MoveDownMenu.class).setEnabled(moveDownEnabled);
-    columnsTable.getMenuByClass(AddColumnMenu.class).setEnabled(addEnabled);
-    columnsTable.getMenuByClass(RemoveMenu.class).setEnabled(removeEnabled);
-    setEnabledAndVisible(columnsTable, ModifyCustomColumnMenu.class, modifyEnabled);
   }
 
   private void setEnabledAndVisible(Table columnsTable, Class<? extends IMenu> menuType, boolean enabled) {
@@ -1076,7 +1058,7 @@ public class OrganizeColumnsForm extends AbstractForm implements IOrganizeColumn
    * requires a different state for that menu.
    */
   protected boolean isColumnAddable() {
-    return isCustomizable();
+    return getOrganizedTable().getTableOrganizer().isColumnAddable();
   }
 
   /**
@@ -1084,7 +1066,7 @@ public class OrganizeColumnsForm extends AbstractForm implements IOrganizeColumn
    * requires a different state for that menu.
    */
   protected boolean isColumnRemovable(IColumn<?> column) {
-    return isCustomizable() && m_organizedTable.getTableCustomizer().isCustomizable(column);
+    return column.isRemovable();
   }
 
   /**
@@ -1131,7 +1113,7 @@ public class OrganizeColumnsForm extends AbstractForm implements IOrganizeColumn
   }
 
   protected boolean acceptColumnForColumnsTable(IColumn<?> column) {
-    return column.isDisplayable() && (column.isVisible() || column.isVisibleGranted());
+    return column.isVisible();
   }
 
   protected List<ITableRow> createColumnsTableRows(Table columnsTable) {
