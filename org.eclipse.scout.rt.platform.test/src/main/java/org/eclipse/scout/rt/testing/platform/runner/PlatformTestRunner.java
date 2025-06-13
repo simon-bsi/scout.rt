@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -12,6 +12,7 @@ package org.eclipse.scout.rt.testing.platform.runner;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scout.rt.platform.BeanMetaData;
 import org.eclipse.scout.rt.platform.IPlatform;
@@ -65,6 +66,8 @@ import org.junit.runners.model.Statement;
  * @since 5.1
  */
 public class PlatformTestRunner extends BlockJUnit4ClassRunner {
+
+  private static final long DEFAULT_FALLBACK_TIMEOUT = TimeUnit.MINUTES.toMillis(3);
 
   public PlatformTestRunner(final Class<?> clazz) throws InitializationError {
     super(clazz);
@@ -265,7 +268,19 @@ public class PlatformTestRunner extends BlockJUnit4ClassRunner {
 
   protected long getTimeoutMillis(Method method) {
     Test annotation = ReflectionUtility.getAnnotation(Test.class, method);
-    return annotation == null ? 0 : annotation.timeout();
+    if (annotation == null) {
+      return DEFAULT_FALLBACK_TIMEOUT; // set a default timeout, we usually do not want our tests to run forever
+    }
+
+    long timeout = annotation.timeout();
+    if (timeout == 0L) {
+      return DEFAULT_FALLBACK_TIMEOUT; // override default timeout, we do not want to run our tests forever
+    }
+    else if (timeout < 0L) {
+      return 0L; // forever
+    }
+
+    return timeout;
   }
 
   protected boolean hasNoTimeout(Method method) {
