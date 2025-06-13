@@ -104,7 +104,6 @@ export default (): FormModel => ({
           cssClass: 'no-menubar-separators',
           headerVisible: false,
           autoResizeColumns: true,
-          checkable: true,
           scrollToSelection: true, // To reveal selection when moving rows
           columns: [{
             id: 'KeyColumn',

@@ -7,9 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {
-  Action, arrays, Column, Event, Form, InitModelOf, MoveTableRowMenuHelper, scout, ShowInvisibleColumnsForm, Table, TableCompleteCellEditEvent, TableRow, TableRowModel, TableRowsCheckedEvent, TableRowsSelectedEvent, WidgetModel
-} from '../../index';
+import {Action, arrays, Column, Event, Form, InitModelOf, MoveTableRowMenuHelper, scout, ShowInvisibleColumnsForm, Table, TableCompleteCellEditEvent, TableRow, TableRowModel, TableRowsSelectedEvent, WidgetModel} from '../../index';
 import TableOrganizerFormModel, {ColumnsTable0, ProfilesTable, TableOrganizerFormWidgetMap} from './TableOrganizerFormModel';
 
 export class TableOrganizerForm extends Form {
@@ -39,7 +37,6 @@ export class TableOrganizerForm extends Form {
     this.widget('AddColumnMenu').on('action', event => this._onAddColumnMenuAction(event));
     this.widget('ModifyColumnMenu').on('action', event => this._onModifyColumnMenuAction(event));
     this.widget('RemoveColumnMenu').on('action', event => this._onRemoveColumnMenuAction(event));
-    this.columnsTable.on('rowsChecked', event => this._onColumnsTableRowsChecked(event));
     this.columnsTable.on('rowsSelected', event => this._onColumnsTableRowsSelected(event));
     this._installColumnUpDownMenus();
   }
@@ -105,27 +102,26 @@ export class TableOrganizerForm extends Form {
   }
 
   protected _reloadColumnsTable() {
-    let columns = this.columnsTable.checkableColumn ? this.table.displayableColumns(false) : this.table.visibleColumns(false);
+    let columns = this.table.visibleColumns(false);
     const rows = columns.map(column => {
       return {
         cells: [
           column,
           ShowInvisibleColumnsForm.createColumnTitleCell(column)
-        ],
-        checked: column.visible,
-        enabled: this.columnsTable.checkableColumn ? !column.fixedPosition : true
+        ]
       } as TableRowModel;
     });
     this.columnsTable.replaceRows(rows);
   }
 
   protected _updateColumnMenus() {
+    let selectedColumns = this.keyColumn.selectedCellValues();
+    let columnAddable = this.table.organizer.isColumnAddable(arrays.last(selectedColumns));
     let columnRemovable = false;
     let columnModifiable = false;
     let columnMovableToLeft = false;
     let columnMovableToRight = false;
-    let considerColumnVisibility = !this.columnsTable.checkable;
-    for (const column of this.keyColumn.selectedCellValues()) {
+    for (const column of selectedColumns) {
       if (this.table.organizer.isColumnModifiable(column)) {
         columnModifiable = true;
       }
@@ -139,22 +135,18 @@ export class TableOrganizerForm extends Form {
         columnMovableToRight = true;
       }
     }
-    // Add and remove menus are either used to add / remove custom columns or to show / hide invisible columns
-    // If table is checkable, these menus are only used for custom columns
-    let customizable = this.table.isCustomizable();
-    this.widget('AddColumnMenu').setVisible(considerColumnVisibility || (customizable && this.table.columnAddable));
-    this.widget('AddColumnMenu').setEnabled(this.table.organizer.isColumnAddable(null, considerColumnVisibility));
+    // Add and remove menus are either used to show and hide columns or to add and remove custom columns
+    this.widget('AddColumnMenu').setVisible(columnAddable);
     this.widget('ModifyColumnMenu').setVisible(columnModifiable);
-    this.widget('ModifyColumnMenu').setEnabled(columnModifiable);
-    this.widget('RemoveColumnMenu').setVisible(considerColumnVisibility || customizable);
-    this.widget('RemoveColumnMenu').setEnabled(columnRemovable);
+    this.widget('RemoveColumnMenu').setVisible(columnRemovable);
+
+    // The move-menus should always be visible, otherwise their position changes when row is moved to top or bottom
     this.widget('MoveColumnUpMenu').setEnabled(columnMovableToLeft);
     this.widget('MoveColumnDownMenu').setEnabled(columnMovableToRight);
   }
 
   protected _isColumnRemovable(column: Column<any>) {
-    let considerColumnVisibility = !this.columnsTable.checkable;
-    return this.table.organizer.isColumnRemovable(column, considerColumnVisibility, true);
+    return this.table.organizer.isColumnRemovable(column, true);
   }
 
   protected async _onAddColumnMenuAction(event: Event<Action>): Promise<void> {
@@ -178,22 +170,6 @@ export class TableOrganizerForm extends Form {
     this._reloadColumnsTable();
   }
 
-  protected _onColumnsTableRowsChecked(event: TableRowsCheckedEvent) {
-    let checkedColumns = [];
-    let uncheckedColumns = [];
-    for (const row of event.rows) {
-      const column = this.keyColumn.cellValue(row);
-      if (row.checked) {
-        checkedColumns.push(column);
-      } else {
-        uncheckedColumns.push(column);
-      }
-    }
-    this.table.organizer.showColumns(checkedColumns);
-    this.table.organizer.hideColumns(uncheckedColumns);
-    this._updateColumnMenus();
-  }
-
   protected _onColumnsTableRowsSelected(event: TableRowsSelectedEvent) {
     this._updateColumnMenus();
   }
@@ -215,7 +191,7 @@ export class TableOrganizerForm extends Form {
       }
     });
     this.columnsTable.on('rowOrderChanged', event => {
-      let newVisibleColumns = this.columnsTable.checkable ? this.keyColumn.checkedCellValues() : this.keyColumn.cellValues();
+      let newVisibleColumns = this.keyColumn.cellValues();
       this.table.organizer.moveColumns(newVisibleColumns);
       this._updateColumnMenus();
     });

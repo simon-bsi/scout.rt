@@ -156,10 +156,8 @@ export class TableOrganizer implements ObjectWithType {
 
   /**
    * Returns true if there are addable columns according to {@link getInvisibleColumns}.
-   *
-   * @param considerVisibility true, to also check the visibility of the columns if the other conditions are not met. Default is true.
    */
-  isColumnAddable(insertAfterColumn?: Column<any>, considerVisibility = true): boolean {
+  isColumnAddable(insertAfterColumn?: Column<any>): boolean {
     if (!this.table) {
       return false; // not installed
     }
@@ -169,14 +167,11 @@ export class TableOrganizer implements ObjectWithType {
     if (this.table.isCustomizable()) {
       return true;
     }
-    if (!considerVisibility) {
-      return false;
-    }
     let invisibleColumns = this.getInvisibleColumns(insertAfterColumn);
     return arrays.hasElements(invisibleColumns);
   }
 
-  addColumn(column: Column<any>): JQuery.Promise<void> {
+  addColumn(column?: Column<any>): JQuery.Promise<void> {
     if (this.table.isCustomizable()) {
       // TODO bsh [js-table] Delegate to this.table.tableCustomizer
       return $.resolvedPromise();
@@ -187,10 +182,9 @@ export class TableOrganizer implements ObjectWithType {
   /**
    * Returns true if the given column can be removed form the table.
    *
-   * @param considerVisibility true, to also check the visibility of the columns if the other conditions are not met. Default is true.
-   * @param allowRemovalOfLastColumn true, to allow the removal of the last visible column. Only has an effect if `considerVisibility` is true. Default is false.
+   * @param allowRemovalOfLastColumn true, to allow the removal of the last visible column. Default is false.
    */
-  isColumnRemovable(column: Column<any>, considerVisibility = true, allowRemovalOfLastColumn = false): boolean {
+  isColumnRemovable(column: Column<any>, allowRemovalOfLastColumn = false): boolean {
     if (!this.table) {
       return false; // not installed
     }
@@ -202,9 +196,6 @@ export class TableOrganizer implements ObjectWithType {
     }
     if (this.table.isCustomizable()) {
       return true;
-    }
-    if (!considerVisibility) {
-      return false;
     }
     // Prevent removal of last column, because there may not always be a table organizer menu to add it again
     return this.table.visibleColumns(false).length > (allowRemovalOfLastColumn ? 0 : 1);
