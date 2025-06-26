@@ -19,17 +19,16 @@ import org.eclipse.scout.rt.client.ui.desktop.hybrid.HybridActionContextElements
 import org.eclipse.scout.rt.client.ui.desktop.hybrid.HybridActionType;
 import org.eclipse.scout.rt.client.ui.desktop.outline.IOutline;
 import org.eclipse.scout.rt.client.ui.desktop.outline.pages.js.IJsPage;
-import org.eclipse.scout.rt.dataobject.IDoEntity;
 import org.eclipse.scout.rt.platform.BEANS;
 import org.eclipse.scout.rt.platform.util.CollectionUtility;
 
 @HybridActionType(CreateChildPagesHybridAction.TYPE)
-public class CreateChildPagesHybridAction extends AbstractHybridAction<IDoEntity> {
+public class CreateChildPagesHybridAction extends AbstractHybridAction<CreateChildPagesHybridActionDo> {
 
   protected static final String TYPE = "CreateChildPages";
 
   @Override
-  public void execute(IDoEntity data) {
+  public void execute(CreateChildPagesHybridActionDo data) {
     System.out.println("|\n| " + getClass().getSimpleName() + "\n|");
     HybridActionContextElements resultContextElements = BEANS.get(HybridActionContextElements.class);
     try {
@@ -67,6 +66,7 @@ public class CreateChildPagesHybridAction extends AbstractHybridAction<IDoEntity
 
         if (CollectionUtility.hasElements(childPages)) {
           resultContextElements.withElements("childPages", childPages.stream()
+              .filter(childPage -> childPage.getTree() != null) // AbstractTreeNode may remove the added node again if it is not visible
               .map(childPage -> HybridActionContextElement.of(outline, childPage))
               .collect(Collectors.toList()));
         }

@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.eclipse.scout.rt.client.ui.basic.table.ITable;
 import org.eclipse.scout.rt.client.ui.desktop.outline.pages.AbstractPage;
+import org.eclipse.scout.rt.client.ui.desktop.outline.pages.CreateChildPagesHybridActionDo;
 import org.eclipse.scout.rt.client.ui.desktop.outline.pages.IPage;
 import org.eclipse.scout.rt.dataobject.IDoEntity;
 import org.eclipse.scout.rt.platform.Order;
@@ -92,7 +93,7 @@ public class AbstractJsPage extends AbstractPage<ITable> implements IJsPage {
   }
 
   @Override
-  public List<IPage<?>> createChildPages(IDoEntity data) {
+  public List<IPage<?>> createChildPages(CreateChildPagesHybridActionDo data) {
     return null;
   }
 }
