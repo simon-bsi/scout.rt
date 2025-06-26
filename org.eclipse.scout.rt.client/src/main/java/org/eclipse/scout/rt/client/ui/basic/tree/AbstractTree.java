@@ -51,6 +51,7 @@ import org.eclipse.scout.rt.client.ui.action.menu.MenuUtility;
 import org.eclipse.scout.rt.client.ui.action.menu.root.ITreeContextMenu;
 import org.eclipse.scout.rt.client.ui.action.menu.root.internal.TreeContextMenu;
 import org.eclipse.scout.rt.client.ui.basic.cell.Cell;
+import org.eclipse.scout.rt.client.ui.basic.cell.ICell;
 import org.eclipse.scout.rt.client.ui.basic.userfilter.IUserFilter;
 import org.eclipse.scout.rt.client.ui.dnd.IDNDSupport;
 import org.eclipse.scout.rt.client.ui.dnd.TransferObject;
@@ -3034,6 +3035,11 @@ public abstract class AbstractTree extends AbstractWidget implements ITree, ICon
     @Override
     public void setDisplayStyleFromUI(String style) {
       setDisplayStyle(style);
+    }
+
+    @Override
+    public void setNodeChanged(ITreeNode node, ICell cell) {
+      node.getCellForUpdate().updateFrom(cell);
     }
   }// end private class
 

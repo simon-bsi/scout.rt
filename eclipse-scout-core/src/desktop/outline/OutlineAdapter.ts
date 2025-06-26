@@ -307,6 +307,8 @@ export class OutlineAdapter extends TreeAdapter {
       pageParam: pageParam,
       classId: pageModel.classId,
       modelClass: pageModel.modelClass,
+      childNodes: pageModel.childNodes,
+      expanded: pageModel.expanded, // TODO CGU make this configurable
       text: pageModel.text || undefined // because summary column might come from Java parent page
     };
   }
