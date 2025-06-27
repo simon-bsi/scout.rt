@@ -10,23 +10,22 @@
 package org.eclipse.scout.rt.client.ui.desktop.outline.pages;
 
 import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.eclipse.scout.rt.client.ui.desktop.hybrid.AbstractHybridAction;
-import org.eclipse.scout.rt.client.ui.desktop.hybrid.HybridActionContextElement;
 import org.eclipse.scout.rt.client.ui.desktop.hybrid.HybridActionContextElements;
 import org.eclipse.scout.rt.client.ui.desktop.hybrid.HybridActionType;
 import org.eclipse.scout.rt.client.ui.desktop.outline.IOutline;
 import org.eclipse.scout.rt.client.ui.desktop.outline.pages.js.IJsPage;
 import org.eclipse.scout.rt.platform.BEANS;
-import org.eclipse.scout.rt.platform.util.CollectionUtility;
 
 @HybridActionType(CreateChildPagesHybridAction.TYPE)
 public class CreateChildPagesHybridAction extends AbstractHybridAction<CreateChildPagesHybridActionDo> {
 
   protected static final String TYPE = "CreateChildPages";
 
+  // TODO CGU this should probably be called ReloadJsPageHybridAction, because it also removes the nodes.
+  // TODO CGU maybe move implementation to loadChildrenImpl on JsPage
+  // TODO CGU maybe OutlineAdapter should send load and nodesDeletedEvents instead of using hybrid actions
   @Override
   public void execute(CreateChildPagesHybridActionDo data) {
     System.out.println("|\n| " + getClass().getSimpleName() + "\n|");
@@ -52,23 +51,11 @@ public class CreateChildPagesHybridAction extends AbstractHybridAction<CreateChi
           finally {
             // TODO - make accessible: jsPage.fireAfterDataLoaded();
           }
-
-          hybridManager().fireHybridEvent(UUID.randomUUID().toString(), "SetChildrenLoaded",
-              BEANS.get(HybridActionContextElements.class).withElement("page", outline, jsPage));
-
           jsPage.setChildrenLoaded(true);
           jsPage.setChildrenDirty(false);
-          jsPage.setExpanded(true);
         }
         finally {
           outline.setTreeChanging(false);
-        }
-
-        if (CollectionUtility.hasElements(childPages)) {
-          resultContextElements.withElements("childPages", childPages.stream()
-              .filter(childPage -> childPage.getTree() != null) // AbstractTreeNode may remove the added node again if it is not visible
-              .map(childPage -> HybridActionContextElement.of(outline, childPage))
-              .collect(Collectors.toList()));
         }
       });
     }

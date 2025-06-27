@@ -308,7 +308,8 @@ export class OutlineAdapter extends TreeAdapter {
       classId: pageModel.classId,
       modelClass: pageModel.modelClass,
       childNodes: pageModel.childNodes,
-      expanded: pageModel.expanded // TODO CGU make this configurable
+      expanded: pageModel.expanded,
+      expandedLazy: pageModel.expandedLazy // TODO CGU make this configurable
     };
   }
 

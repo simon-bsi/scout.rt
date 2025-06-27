@@ -38,6 +38,5 @@ public interface IJsPage extends IPage<ITable> {
 
   void setJsPageModel(IDoEntity jsPageModel);
 
-  // FIXME bsh [hybrid-page] Document
   List<IPage<?>> createChildPages(CreateChildPagesHybridActionDo data);
 }
