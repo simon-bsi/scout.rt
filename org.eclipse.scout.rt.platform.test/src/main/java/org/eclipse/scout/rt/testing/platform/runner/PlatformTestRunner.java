@@ -125,7 +125,7 @@ public class PlatformTestRunner extends BlockJUnit4ClassRunner {
   protected Statement withBefores(final FrameworkMethod method, final Object target, final Statement statement) {
     final List<FrameworkMethod> befores = getTestClass().getAnnotatedMethods(Before.class);
     if (befores.isEmpty()) {
-      return new BeanAnnotationsInitStatement(statement, target);
+      return withPotentialTimeout(method, target, new BeanAnnotationsInitStatement(statement, target));
     }
 
     Statement beforeStatement = new Statement() {
@@ -138,7 +138,7 @@ public class PlatformTestRunner extends BlockJUnit4ClassRunner {
     };
 
     final Statement interceptedBeforeStatement = interceptBeforeStatement(beforeStatement, getTestClass().getJavaClass(), method.getMethod());
-    return new BeanAnnotationsInitStatement(new InterceptedBeforeStatement(statement, interceptedBeforeStatement), target);
+    return withPotentialTimeout(method, target, new BeanAnnotationsInitStatement(new InterceptedBeforeStatement(statement, interceptedBeforeStatement), target));
   }
 
   @Override

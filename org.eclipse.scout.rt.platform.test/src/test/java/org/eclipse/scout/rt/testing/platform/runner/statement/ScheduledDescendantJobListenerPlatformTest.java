@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -13,11 +13,13 @@ import static org.junit.Assert.*;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import org.eclipse.scout.rt.platform.job.IFuture;
 import org.eclipse.scout.rt.platform.job.Jobs;
@@ -166,14 +168,14 @@ public class ScheduledDescendantJobListenerPlatformTest {
   }
 
   private void doTestOneNestedJob() throws InterruptedException {
-    assertEquals(Collections.<IFuture<?>> emptySet(), m_jobListener.getScheduledFutures());
+    Set<IFuture<?>> previousScheduledFutures = m_jobListener.getScheduledFutures();
     CountDownLatch creatingJobsLatch = new CountDownLatch(1);
     scheduleJobs(creatingJobsLatch, new JobSpec(NESTED_JOB1));
     creatingJobsLatch.await(5, TimeUnit.SECONDS);
     assertEquals(
         CollectionUtility.hashSet(
             m_nestedJobsByName.get(NESTED_JOB1).getFuture()),
-        m_jobListener.getScheduledFutures());
+        m_jobListener.getScheduledFutures().stream().filter(f -> !previousScheduledFutures.contains(f)).collect(Collectors.toSet()));
   }
 
   /* *************************************************************************************

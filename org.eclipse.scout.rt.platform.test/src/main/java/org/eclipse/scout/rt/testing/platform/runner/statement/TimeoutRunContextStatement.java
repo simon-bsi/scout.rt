@@ -40,11 +40,13 @@ public class TimeoutRunContextStatement extends AbstractTimeoutRunContextStateme
   @Override
   protected IFuture<Void> createFuture(IRunnable runnable) {
     RunMonitor newRunMonitor = BEANS.get(RunMonitor.class);
+    RunContext currentRunContext = RunContext.CURRENT.get();
     return Jobs.schedule(runnable, Jobs.newInput()
-        .withRunContext(RunContext.CURRENT.get().copy()
-            .withRunMonitor(newRunMonitor)
-            .withParentRunMonitor(RunMonitor.CURRENT.get())
-            .withTransactionScope(TransactionScope.REQUIRES_NEW)) // Run in new TX, because the same TX is not allowed to be used by multiple threads.
+        .withRunContext(
+            currentRunContext != null
+                // Run in new TX, because the same TX is not allowed to be used by multiple threads.
+                ? currentRunContext.copy().withRunMonitor(newRunMonitor).withParentRunMonitor(RunMonitor.CURRENT.get()).withTransactionScope(TransactionScope.REQUIRES_NEW)
+                : null)
         .withName("Running test with support for JUnit timeout"));
   }
 }
