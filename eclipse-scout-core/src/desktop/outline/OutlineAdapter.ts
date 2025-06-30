@@ -326,9 +326,6 @@ export class OutlineAdapter extends TreeAdapter {
 
   protected override _initNodeModel(nodeModel?: TreeNodeModel): ChildModelOf<Page> {
     const model = super._initNodeModel(nodeModel) as ChildModelOf<Page>;
-    // This marker is only set for pages that represent a remote page on the UI server. It prevents menus from being inherited
-    // from the parent table page, because in the case of Java pages that is already done on the server.
-    model.remote = true;
     model.pageParam = dataObjects.deserialize(model.pageParam);
     return model;
   }

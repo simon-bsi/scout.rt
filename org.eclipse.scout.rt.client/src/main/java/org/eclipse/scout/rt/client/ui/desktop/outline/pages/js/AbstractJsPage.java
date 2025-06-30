@@ -13,8 +13,8 @@ import java.util.List;
 
 import org.eclipse.scout.rt.client.ui.basic.table.ITable;
 import org.eclipse.scout.rt.client.ui.desktop.outline.pages.AbstractPage;
-import org.eclipse.scout.rt.client.ui.desktop.outline.pages.CreateChildPagesHybridActionDo;
 import org.eclipse.scout.rt.client.ui.desktop.outline.pages.IPage;
+import org.eclipse.scout.rt.client.ui.desktop.outline.pages.LoadChildPagesHybridActionDo;
 import org.eclipse.scout.rt.dataobject.IDoEntity;
 import org.eclipse.scout.rt.platform.Order;
 import org.eclipse.scout.rt.platform.annotations.ConfigProperty;
@@ -26,6 +26,7 @@ public class AbstractJsPage extends AbstractPage<ITable> implements IJsPage {
 
   private String m_jsPageObjectType;
   private IDoEntity m_jsPageModel;
+  private LoadChildPagesHybridActionDo m_data;
 
   public AbstractJsPage() {
     this(true);
@@ -93,7 +94,28 @@ public class AbstractJsPage extends AbstractPage<ITable> implements IJsPage {
   }
 
   @Override
-  public List<IPage<?>> createChildPages(CreateChildPagesHybridActionDo data) {
+  public void loadChildrenFromUi(LoadChildPagesHybridActionDo data) {
+    try {
+      getOutline().setTreeChanging(true);
+      setChildrenLoaded(false);
+      fireBeforeDataLoaded();
+      try {
+        getOutline().removeAllChildNodes(this);
+        List<IPage<?>> childPages = createChildPages(data);
+        getOutline().addChildNodes(this, childPages);
+      }
+      finally {
+        fireAfterDataLoaded();
+      }
+      setChildrenLoaded(true);
+      setChildrenDirty(false);
+    }
+    finally {
+      getOutline().setTreeChanging(false);
+    }
+  }
+
+  public List<IPage<?>> createChildPages(LoadChildPagesHybridActionDo data) {
     return null;
   }
 }

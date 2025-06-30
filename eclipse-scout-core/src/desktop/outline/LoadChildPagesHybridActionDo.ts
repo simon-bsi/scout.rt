@@ -9,7 +9,7 @@
  */
 import {BaseDoEntity, typeName} from '../../index';
 
-@typeName('scout.CreateChildPagesHybridAction')
-export class CreateChildPagesHybridActionDo extends BaseDoEntity {
+@typeName('scout.LoadChildPagesHybridAction')
+export class LoadChildPagesHybridActionDo extends BaseDoEntity {
   keys: string[];
 }

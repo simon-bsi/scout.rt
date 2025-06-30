@@ -100,6 +100,9 @@ export class TreeAdapter extends ModelAdapter {
   }
 
   protected _onWidgetNodeChanged(event: TreeNodeChangedEvent) {
+    if (!(event.node as RemoteTreeNode).remote) { // TODO CGU add this check to all events. Problem: JsPages are not remote, do they have to get this flag or do we need to add a hybrid flag?
+      return;
+    }
     this._send('nodeChanged', {
       nodeId: event.node.id,
       text: event.node.text,
@@ -295,6 +298,8 @@ export class TreeAdapter extends ModelAdapter {
     nodeModel = nodeModel || {};
     nodeModel.objectType = scout.nvl(nodeModel.objectType, this._getDefaultNodeObjectType());
     defaultValues.applyTo(nodeModel);
+    // This marker is only set for nodes that represent a remote node on the UI server.
+    nodeModel.remote = true;
     return nodeModel as ChildModelOf<TreeNode>;
   }
 
@@ -335,3 +340,7 @@ export class TreeAdapter extends ModelAdapter {
 }
 
 App.addListener('bootstrap', TreeAdapter.modifyTreePrototype);
+
+export interface RemoteTreeNode extends TreeNode {
+  remote?: boolean;
+}

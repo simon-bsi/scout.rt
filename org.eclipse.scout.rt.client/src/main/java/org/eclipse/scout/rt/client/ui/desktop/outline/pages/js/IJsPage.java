@@ -9,11 +9,9 @@
  */
 package org.eclipse.scout.rt.client.ui.desktop.outline.pages.js;
 
-import java.util.List;
-
 import org.eclipse.scout.rt.client.ui.basic.table.ITable;
-import org.eclipse.scout.rt.client.ui.desktop.outline.pages.CreateChildPagesHybridActionDo;
 import org.eclipse.scout.rt.client.ui.desktop.outline.pages.IPage;
+import org.eclipse.scout.rt.client.ui.desktop.outline.pages.LoadChildPagesHybridActionDo;
 import org.eclipse.scout.rt.dataobject.IDoEntity;
 
 /**
@@ -38,5 +36,5 @@ public interface IJsPage extends IPage<ITable> {
 
   void setJsPageModel(IDoEntity jsPageModel);
 
-  List<IPage<?>> createChildPages(CreateChildPagesHybridActionDo data);
+  void loadChildrenFromUi(LoadChildPagesHybridActionDo data);
 }

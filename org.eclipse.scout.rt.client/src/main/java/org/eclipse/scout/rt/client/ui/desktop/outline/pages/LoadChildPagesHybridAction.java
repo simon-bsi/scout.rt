@@ -10,29 +10,31 @@
 package org.eclipse.scout.rt.client.ui.desktop.outline.pages;
 
 import org.eclipse.scout.rt.client.ui.desktop.hybrid.AbstractHybridAction;
+import org.eclipse.scout.rt.client.ui.desktop.hybrid.HybridActionContextElements;
 import org.eclipse.scout.rt.client.ui.desktop.hybrid.HybridActionType;
 import org.eclipse.scout.rt.client.ui.desktop.outline.IOutline;
 import org.eclipse.scout.rt.client.ui.desktop.outline.pages.js.IJsPage;
-import org.eclipse.scout.rt.dataobject.IDoEntity;
+import org.eclipse.scout.rt.platform.BEANS;
 
-@HybridActionType(DestroyChildPagesHybridAction.TYPE)
-public class DestroyChildPagesHybridAction extends AbstractHybridAction<IDoEntity> {
+@HybridActionType(LoadChildPagesHybridAction.TYPE)
+public class LoadChildPagesHybridAction extends AbstractHybridAction<LoadChildPagesHybridActionDo> {
 
-  protected static final String TYPE = "DestroyChildPages";
+  protected static final String TYPE = "LoadChildPages";
 
   @Override
-  public void execute(IDoEntity data) {
+  public void execute(LoadChildPagesHybridActionDo data) {
     System.out.println("|\n| " + getClass().getSimpleName() + "\n|");
+    HybridActionContextElements resultContextElements = BEANS.get(HybridActionContextElements.class);
     try {
       IJsPage jsPage = getContextElement("page").getElement(IJsPage.class);
-
       IOutline outline = jsPage.getOutline();
-      getContextElements("childPages").stream()
-          .map(contextElement -> contextElement.getElement(IPage.class))
-          .forEach(childPage -> outline.removeChildNode(jsPage, childPage));
+
+      outline.createDisplayParentRunContext().run(() -> {
+        jsPage.loadChildrenFromUi(data);
+      });
     }
     finally { // always signal the end of the action to the UI, even in the case of an error on the server
-      fireHybridActionEndEvent();
+      fireHybridActionEndEvent(resultContextElements);
     }
   }
 }

@@ -19,8 +19,8 @@ import org.eclipse.scout.rt.dataobject.DoList;
 import org.eclipse.scout.rt.dataobject.TypeName;
 import org.eclipse.scout.rt.dataobject.id.IId;
 
-@TypeName("scout.CreateChildPagesHybridAction")
-public class CreateChildPagesHybridActionDo extends DoEntity {
+@TypeName("scout.LoadChildPagesHybridAction")
+public class LoadChildPagesHybridActionDo extends DoEntity {
   public DoList<IId> keys() {
     return doList("keys");
   }
@@ -30,13 +30,13 @@ public class CreateChildPagesHybridActionDo extends DoEntity {
    * *************************************************************************/
 
   @Generated("DoConvenienceMethodsGenerator")
-  public CreateChildPagesHybridActionDo withKeys(Collection<? extends IId> keys) {
+  public LoadChildPagesHybridActionDo withKeys(Collection<? extends IId> keys) {
     keys().updateAll(keys);
     return this;
   }
 
   @Generated("DoConvenienceMethodsGenerator")
-  public CreateChildPagesHybridActionDo withKeys(IId... keys) {
+  public LoadChildPagesHybridActionDo withKeys(IId... keys) {
     keys().updateAll(keys);
     return this;
   }
