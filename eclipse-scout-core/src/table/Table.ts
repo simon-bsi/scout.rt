@@ -3259,6 +3259,10 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
     this.deleteAllRows();
     this.insertRows(rows);
     this.restoreSelection(selectedKeys);
+    if (this.rendered) {
+      // Restore scrollTop
+      this._renderScrollTop();
+    }
   }
 
   deleteRow(row: TableRow) {
@@ -5878,6 +5882,9 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
       return;
     }
     if (this._renderViewportBlocked) {
+      // If rows are removed and new rows inserted but never shown because of this blocking, scrollTop will be reset.
+      // To preserve scroll top until the update buffer resolves, let the filler consume the space for the rows to be inserted.
+      this._renderFiller();
       return;
     }
     if (this.visibleColumns().length === 0) {
@@ -6012,6 +6019,16 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
     }
 
     let fillBeforeHeight = this._calculateFillerHeight(new Range(0, this.viewRangeRendered.from));
+    let fillAfterHeight = this._calculateFillerHeight(new Range(this.viewRangeRendered.to, this.visibleRows.length));
+    if (this.viewRangeRendered.size() === 0) {
+      // If no rows are rendered even though there are rows, the filler should consume their space. May happen if viewport rendering is blocked (_renderViewportBlocked).
+      // In that case, fillBeforeHeight will be 0 and fillAfterHeight as big as the rows should be.
+      // If the rows are drawn eventually, fillBeforeHeight may be increased if the viewport is scrolled and fillAfterHeight reduced because the rows are now rendered
+      // If this happens, scrollTop will be increased when $fillBefore is updated but not reduced anymore, when $fillAfter is updated -> data would be scrolled to the end
+      // -> $fillBefore should consume the space in this case to preserve scrollTop
+      fillBeforeHeight = fillAfterHeight;
+      fillAfterHeight = 0;
+    }
     this.$fillBefore.cssHeight(fillBeforeHeight);
     this.$fillBefore.cssWidth(this.rowWidth);
     $.log.isTraceEnabled() && $.log.trace('FillBefore height: ' + fillBeforeHeight);
@@ -6021,7 +6038,6 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
       this._applyFillerStyle(this.$fillAfter);
     }
 
-    let fillAfterHeight = this._calculateFillerHeight(new Range(this.viewRangeRendered.to, this.visibleRows.length));
     this.$fillAfter.cssHeight(fillAfterHeight);
     this.$fillAfter.cssWidth(this.rowWidth);
     $.log.isTraceEnabled() && $.log.trace('FillAfter height: ' + fillAfterHeight);
