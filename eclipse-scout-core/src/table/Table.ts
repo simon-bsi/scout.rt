@@ -139,6 +139,7 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
   $emptyData: JQuery;
   $fillBefore: JQuery;
   $fillAfter: JQuery;
+  $stretcher: JQuery;
 
   /** @internal */
   _renderViewportBlocked: boolean;
@@ -636,7 +637,8 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
       .on('dblclick', '.table-row', this._onRowDoubleClick.bind(this))
       .on('contextmenu', event => event.preventDefault());
     this._installScrollbars({
-      axis: 'both'
+      axis: 'both',
+      nativeScrollbars: true
     });
     this._installImageListeners();
     this._installCellTooltipSupport();
@@ -1128,6 +1130,10 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
   reload(reloadReason?: TableReloadReason) {
     if (!this.hasReloadHandler) {
       return;
+    }
+    if (this._isDataRendered()) {
+      this.$stretcher?.remove();
+      this.$stretcher = this.$data.appendDiv('stretcher').cssHeight(this.$data[0].scrollHeight);
     }
     this._removeRows();
     if (this._isDataRendered()) {
@@ -5952,6 +5958,7 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
     this._renderEmptyData();
     this._renderBackgroundEffect();
     this._renderSelection();
+    this.$stretcher?.remove();
     this.viewRangeDirty = false;
   }
 

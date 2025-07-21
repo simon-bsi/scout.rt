@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2024 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -221,6 +221,14 @@
 
 .table-data-fill {
   background-color: @border-color; /* actual style is set by JS, this is used for the line color (see _applyFillerStyle) */
+}
+
+.stretcher {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  pointer-events: none;
 }
 
 .table-row,
