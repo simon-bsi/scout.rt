@@ -81,5 +81,6 @@ export class TableUpdateBuffer {
     if (this.table._isDataRendered()) {
       this.table._renderViewport();
     }
+    this.table.trigger('updateBufferEnd');
   }
 }

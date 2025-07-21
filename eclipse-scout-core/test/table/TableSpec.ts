@@ -4207,7 +4207,7 @@ describe('Table', () => {
       expect(table.updateBuffer.isBuffering()).toBe(true);
       expect(table.$rows().length).toBe(0);
 
-      await table.when('propertyChange:loading');
+      await table.when('updateBufferEnd');
       expect(table.$rows().length).toBe(2);
 
       table.scrollTo(table.rows[5]);
@@ -4219,9 +4219,8 @@ describe('Table', () => {
       table.replaceRows(rows);
       expect(table.updateBuffer.isBuffering()).toBe(true);
       expect(table.$rows().length).toBe(0);
-      expect(table.$data[0].scrollTop).toBe(scrollTop); // Filler consumes the space until the rows will be drawn
 
-      await table.when('propertyChange:loading');
+      await table.when('updateBufferEnd');
       expect(table.$rows().length).toBe(2);
       expect(table.$data[0].scrollTop).toBe(scrollTop);
     });
