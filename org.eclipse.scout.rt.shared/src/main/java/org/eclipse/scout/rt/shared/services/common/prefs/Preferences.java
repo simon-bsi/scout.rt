@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -67,7 +67,7 @@ public class Preferences implements IPreferences {
   private final transient FastListenerList<IPreferenceChangeListener> m_eventListeners;
   private boolean m_dirty;
 
-  protected Preferences(String name, ISession userScope) {
+  public Preferences(String name, ISession userScope) {
     this(name, userScope, new LinkedHashMap<>(), false);
   }
 
