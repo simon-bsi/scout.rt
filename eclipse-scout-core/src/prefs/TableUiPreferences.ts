@@ -135,6 +135,18 @@ export class TableUiPreferences implements ObjectWithType {
     table.off('propertyChange:tileMode', this._tableTileModeListener);
   }
 
+  withIgnoreTableEvents(runnable: () => void) {
+    if (!runnable) {
+      return;
+    }
+    this._ignoreTableEvents = true;
+    try {
+      runnable();
+    } finally {
+      this._ignoreTableEvents = false;
+    }
+  }
+
   protected get _ignoreTableEvents(): boolean {
     return this._ignoreTableEventsCounter > 0;
   }
@@ -384,17 +396,14 @@ export class TableUiPreferences implements ObjectWithType {
     }
     scout.assertParameter('table', table, Table);
 
-    this._ignoreTableEvents = true;
-    try {
+    this.withIgnoreTableEvents(() => {
       this._applyTablePreferencesInternal(table, prefs, options);
 
       let profile = this.getProfile(prefs, profileId);
       if (profile) {
         this._applyTablePreferenceProfileInternal(table, profile, options);
       }
-    } finally {
-      this._ignoreTableEvents = false;
-    }
+    });
   }
 
   /**
@@ -406,12 +415,9 @@ export class TableUiPreferences implements ObjectWithType {
     }
     scout.assertParameter('table', table, Table);
 
-    this._ignoreTableEvents = true;
-    try {
+    this.withIgnoreTableEvents(() => {
       this._applyTablePreferenceProfileInternal(table, profile, options);
-    } finally {
-      this._ignoreTableEvents = false;
-    }
+    });
   }
 
   protected _applyTablePreferencesInternal(table: Table, prefs: TableClientUiPreferencesDo, options?: ApplyTablePreferencesOptions) {
