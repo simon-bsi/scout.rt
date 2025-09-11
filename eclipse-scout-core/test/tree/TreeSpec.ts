@@ -3640,4 +3640,48 @@ describe('Tree', () => {
       });
     });
   });
+
+  describe('findNode', () => {
+    class CustomNode1 extends TreeNode {
+    }
+
+    class CustomNode2 extends CustomNode1 {
+    }
+
+    class CustomNode3 extends CustomNode2 {
+    }
+
+    it('finds the first node which has the given type', () => {
+      let tree = scout.create(Tree, {
+        parent: session.desktop
+      });
+      tree.insertNodes([{
+        text: 'node 1'
+      }, {
+        text: 'node 2'
+      }]);
+      tree.insertNodes([{
+        objectType: CustomNode1,
+        text: 'node 1_1'
+      }, {
+        objectType: CustomNode1,
+        text: 'node 1_2'
+      }], tree.nodes[0]);
+      tree.insertNodes([{
+        objectType: CustomNode2,
+        text: 'node 2_1'
+      }, {
+        objectType: CustomNode2,
+        text: 'node 2_2'
+      }], tree.nodes[1]);
+
+      expect(tree.findNode(CustomNode1)).toBe(tree.nodes[0].childNodes[0]);
+      expect(tree.findNode(CustomNode2)).toBe(tree.nodes[1].childNodes[0]);
+      expect(tree.findNode(CustomNode3)).toBe(null);
+    });
+
+    it('finds the first node that is accepted by the given predicate', () => {
+      // TODO CGU implement, also add tests for visitor and migration guide for changed visiting logic
+    });
+  });
 });
