@@ -10,8 +10,6 @@
 package org.eclipse.scout.rt.shared.services.common.context;
 
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
@@ -48,11 +46,6 @@ public class SharedVariableMap implements Serializable, Map<String, Object> {
     m_propertySupport = new BasicPropertySupport(this);
   }
 
-  private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-    ois.defaultReadObject();
-    m_propertySupport = new BasicPropertySupport(this);
-  }
-
   public void addPropertyChangeListener(PropertyChangeListener listener) {
     m_propertySupport.addPropertyChangeListener(listener);
   }
@@ -73,8 +66,8 @@ public class SharedVariableMap implements Serializable, Map<String, Object> {
     putAll(newMap); // fires a value changed event
   }
 
-  private void fireValuesChanged() {
-    m_propertySupport.firePropertyChange(PROP_VALUES, null, CollectionUtility.copyMap(m_variables));
+  private void fireValuesChanged(Map<String, Object> oldVariables) {
+    m_propertySupport.firePropertyChange(PROP_VALUES, oldVariables, CollectionUtility.copyMap(m_variables));
   }
 
   /**
@@ -82,8 +75,9 @@ public class SharedVariableMap implements Serializable, Map<String, Object> {
    */
   @Override
   public synchronized void clear() {
+    Map<String, Object> oldVariables = CollectionUtility.copyMap(m_variables);
     m_variables.clear();
-    fireValuesChanged();
+    fireValuesChanged(oldVariables);
   }
 
   @Override
@@ -121,8 +115,9 @@ public class SharedVariableMap implements Serializable, Map<String, Object> {
    */
   @Override
   public synchronized Object put(String key, Object value) {
+    Map<String, Object> oldVariables = CollectionUtility.copyMap(m_variables);
     Object o = m_variables.put(key, value);
-    fireValuesChanged();
+    fireValuesChanged(oldVariables);
     return o;
   }
 
@@ -131,8 +126,9 @@ public class SharedVariableMap implements Serializable, Map<String, Object> {
    */
   @Override
   public synchronized void putAll(Map<? extends String, ?> m) {
+    Map<String, Object> oldVariables = CollectionUtility.copyMap(m_variables);
     m_variables.putAll(m);
-    fireValuesChanged();
+    fireValuesChanged(oldVariables);
   }
 
   /**
@@ -140,8 +136,9 @@ public class SharedVariableMap implements Serializable, Map<String, Object> {
    */
   @Override
   public synchronized Object remove(Object key) {
+    Map<String, Object> oldVariables = CollectionUtility.copyMap(m_variables);
     Object o = m_variables.remove(key);
-    fireValuesChanged();
+    fireValuesChanged(oldVariables);
     return o;
   }
 

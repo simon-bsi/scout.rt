@@ -73,8 +73,7 @@ public abstract class AbstractServerSession implements IServerSession, Serializa
   }
 
   private void assignUserId() {
-    String userId = BEANS.get(IAccessControlService.class).getUserIdOfCurrentSubject();
-    setUserIdInternal(userId);
+    m_userId = BEANS.get(IAccessControlService.class).getUserIdOfCurrentSubject();
   }
 
   /**
@@ -93,10 +92,6 @@ public abstract class AbstractServerSession implements IServerSession, Serializa
   @Override
   public final String getUserId() {
     return m_userId;
-  }
-
-  private void setUserIdInternal(String newValue) {
-    m_userId = newValue;
   }
 
   @Override

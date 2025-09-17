@@ -25,6 +25,8 @@ import org.eclipse.scout.rt.shared.ui.UserAgent;
 
 public interface IClientSession extends ISession, IPropertyObserver {
 
+  String USER_ID = "userId";
+
   String PROP_LOCALE = "locale";
 
   /**
@@ -124,27 +126,6 @@ public interface IClientSession extends ISession, IPropertyObserver {
    * see {@link IMemoryPolicy}
    */
   void setMemoryPolicy(IMemoryPolicy memoryPolicy);
-
-  /**
-   * Replaces the complete variables map with a new one.
-   *
-   * @param newMap
-   *     map to replace the current one with
-   */
-  void replaceVariableMapInternal(Map<String, Object> newMap);
-
-  /**
-   * Replaces a single variable with a new value. Adds it if it does not exist yet.
-   */
-  void replaceVariableInternal(String variableName, Object newValue);
-
-  /**
-   * Replaces multiple variables with new values. Adds the ones that do not exist yet.
-   *
-   * @param variables
-   *     map of variables that should be replaced
-   */
-  void replaceVariablesInternal(Map<String, Object> variables);
 
   /**
    * Returns the <em>one-permit</em> {@link IExecutionSemaphore} to run model jobs of this session in sequence, meaning

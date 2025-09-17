@@ -18,14 +18,24 @@ import org.eclipse.scout.rt.platform.Bean;
 public class LoadInitialVariablesResponse implements Serializable {
   private static final long serialVersionUID = 1L;
 
+  private String m_userId;
   private Map<String, Serializable> m_additionalData;
 
-  public LoadInitialVariablesResponse withAdditionalData(Map<String, Serializable> additionalData) {
-    m_additionalData = additionalData;
+  public String getUserId() {
+    return m_userId;
+  }
+
+  public LoadInitialVariablesResponse withUserId(String userId) {
+    m_userId = userId;
     return this;
   }
 
   public Map<String, Serializable> getAdditionalData() {
     return m_additionalData;
+  }
+
+  public LoadInitialVariablesResponse withAdditionalData(Map<String, Serializable> additionalData) {
+    m_additionalData = additionalData;
+    return this;
   }
 }

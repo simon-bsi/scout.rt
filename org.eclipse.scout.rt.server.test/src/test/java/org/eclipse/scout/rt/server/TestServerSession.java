@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -9,9 +9,6 @@
  */
 package org.eclipse.scout.rt.server;
 
-/**
- * A test server session
- */
 public class TestServerSession extends AbstractServerSession {
   private static final long serialVersionUID = 782294551137415747L;
 
@@ -21,11 +18,5 @@ public class TestServerSession extends AbstractServerSession {
 
   @Override
   protected void execLoadSession() {
-  }
-
-  @Override
-  public <T> void setSharedContextVariable(String name, Class<T> type, T value) {
-    // make method accessible for tests
-    super.setSharedContextVariable(name, type, value);
   }
 }

@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.scout.rt.platform.BEANS;
+import org.eclipse.scout.rt.server.AbstractServerSession;
 import org.eclipse.scout.rt.shared.session.ISessionService;
 import org.eclipse.scout.rt.shared.session.LoadInitialVariablesResponse;
 
@@ -26,6 +27,7 @@ public class SessionService implements ISessionService {
     interceptAdditionalData(additionalData);
 
     return BEANS.get(LoadInitialVariablesResponse.class)
+        .withUserId(AbstractServerSession.CURRENT.get().getUserId())
         .withAdditionalData(additionalData);
   }
 

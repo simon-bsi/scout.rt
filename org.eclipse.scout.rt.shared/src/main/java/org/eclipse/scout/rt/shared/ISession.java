@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -13,6 +13,7 @@ import java.util.concurrent.Callable;
 
 import org.eclipse.scout.rt.platform.Bean;
 import org.eclipse.scout.rt.platform.util.event.IFastListenerList;
+import org.eclipse.scout.rt.security.IAccessControlService;
 import org.eclipse.scout.rt.shared.session.ISessionListener;
 
 /**
@@ -32,7 +33,7 @@ public interface ISession {
   String getId();
 
   /**
-   * Authenticated userId in lowercase
+   * Authenticated userId, extracted by {@link IAccessControlService#getUserIdOfCurrentSubject()}
    */
   String getUserId();
 

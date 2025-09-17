@@ -12,8 +12,14 @@ package org.eclipse.scout.rt.shared.session;
 import org.eclipse.scout.rt.platform.service.IService;
 import org.eclipse.scout.rt.shared.TunnelToServer;
 
+/**
+ * Service supporting creation and handling of client sessions
+ */
 @TunnelToServer
 public interface ISessionService extends IService {
 
+  /**
+   * Load initial session variables on start of client session.
+   */
   LoadInitialVariablesResponse loadInitialVariables();
 }

@@ -24,6 +24,7 @@ import javax.security.auth.Subject;
 
 import org.eclipse.scout.rt.client.ClientConfigProperties.MemoryPolicyProperty;
 import org.eclipse.scout.rt.client.context.ClientRunContexts;
+import org.eclipse.scout.rt.client.extension.ClientSessionChains.ClientSessionInitVariablesChain;
 import org.eclipse.scout.rt.client.extension.ClientSessionChains.ClientSessionLoadSessionChain;
 import org.eclipse.scout.rt.client.extension.ClientSessionChains.ClientSessionStoreSessionChain;
 import org.eclipse.scout.rt.client.extension.IClientSessionExtension;
@@ -49,7 +50,6 @@ import org.eclipse.scout.rt.platform.util.CollectionUtility;
 import org.eclipse.scout.rt.platform.util.TypeCastUtility;
 import org.eclipse.scout.rt.platform.util.event.FastListenerList;
 import org.eclipse.scout.rt.platform.util.event.IFastListenerList;
-import org.eclipse.scout.rt.security.IAccessControlService;
 import org.eclipse.scout.rt.shared.extension.AbstractExtension;
 import org.eclipse.scout.rt.shared.extension.IExtensibleObject;
 import org.eclipse.scout.rt.shared.extension.IExtension;
@@ -167,7 +167,7 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
    */
   @Override
   public String getUserId() {
-    return BEANS.get(IAccessControlService.class).getUserIdOfCurrentSubject();
+    return getVariable(USER_ID, String.class);
   }
 
   @Override
@@ -289,18 +289,17 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
     }
   }
 
-  @Override
-  public void replaceVariableMapInternal(Map<String, Object> newMap) {
-    m_variableMap.updateInternal(newMap);
-  }
-
-  @Override
-  public void replaceVariableInternal(String variableName, Object newValue) {
+  /**
+   * Sets a single session variable and fires a change event. If the variable already exists, its value will be overwritten.
+   */
+  protected void setVariable(String variableName, Object newValue) {
     m_variableMap.put(variableName, newValue);
   }
 
-  @Override
-  public void replaceVariablesInternal(Map<String, Object> variables) {
+  /**
+   * Sets multiple session variables and fires a change event. Existing entries with the same keys will be overwritten.
+   */
+  protected void setVariables(Map<String, Object> variables) {
     m_variableMap.putAll(variables);
   }
 
@@ -313,14 +312,8 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
    */
   protected void loadAndInitializeVariables() {
     LoadInitialVariablesResponse initialVariablesResponse = BEANS.get(ISessionService.class).loadInitialVariables();
-    initializeVariables(initialVariablesResponse);
-  }
-
-  /**
-   * Hook for initializing session variables
-   */
-  protected void initializeVariables(LoadInitialVariablesResponse initialVariablesResponse) {
-    // NOP
+    setVariable(USER_ID, initialVariablesResponse.getUserId());
+    interceptInitVariables(initialVariablesResponse);
   }
 
   @Override
@@ -354,6 +347,16 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
   @ConfigOperation
   @Order(20)
   protected void execStoreSession() {
+  }
+
+  /**
+   * Initialize the variables of the client session.
+   * <p>
+   * This method is called in the process of {@link #loadAndInitializeVariables()}, which can be called in {@link #execLoadSession()} to load variables from a backend.
+   */
+  @ConfigOperation
+  @Order(30)
+  protected void execInitVariables(LoadInitialVariablesResponse initialVariablesResponse) {
   }
 
   @Override
@@ -545,6 +548,11 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
     public void execLoadSession(ClientSessionLoadSessionChain chain) {
       getOwner().execLoadSession();
     }
+
+    @Override
+    public void execInitVariables(ClientSessionInitVariablesChain chain, LoadInitialVariablesResponse initialVariablesResponse) {
+      getOwner().execInitVariables(initialVariablesResponse);
+    }
   }
 
   protected final void interceptStoreSession() {
@@ -557,6 +565,12 @@ public abstract class AbstractClientSession extends AbstractPropertyObserver imp
     List<? extends IClientSessionExtension<? extends AbstractClientSession>> extensions = getAllExtensions();
     ClientSessionLoadSessionChain chain = new ClientSessionLoadSessionChain(extensions);
     chain.execLoadSession();
+  }
+
+  protected final void interceptInitVariables(LoadInitialVariablesResponse initialVariablesResponse) {
+    List<? extends IClientSessionExtension<? extends AbstractClientSession>> extensions = getAllExtensions();
+    ClientSessionInitVariablesChain chain = new ClientSessionInitVariablesChain(extensions);
+    chain.execInitVariables(initialVariablesResponse);
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.eclipse.scout.rt.client.AbstractClientSession;
 import org.eclipse.scout.rt.shared.extension.AbstractExtensionChain;
+import org.eclipse.scout.rt.shared.session.LoadInitialVariablesResponse;
 
 public final class ClientSessionChains {
 
@@ -54,6 +55,23 @@ public final class ClientSessionChains {
         @Override
         protected void callMethod(IClientSessionExtension<? extends AbstractClientSession> next) {
           next.execLoadSession(ClientSessionLoadSessionChain.this);
+        }
+      };
+      callChain(methodInvocation);
+    }
+  }
+
+  public static class ClientSessionInitVariablesChain extends AbstractClientSessionChain {
+
+    public ClientSessionInitVariablesChain(List<? extends IClientSessionExtension<? extends AbstractClientSession>> extensions) {
+      super(extensions);
+    }
+
+    public void execInitVariables(LoadInitialVariablesResponse initialVariablesResponse) {
+      MethodInvocation<Object> methodInvocation = new MethodInvocation<Object>() {
+        @Override
+        protected void callMethod(IClientSessionExtension<? extends AbstractClientSession> next) {
+          next.execInitVariables(ClientSessionInitVariablesChain.this, initialVariablesResponse);
         }
       };
       callChain(methodInvocation);
