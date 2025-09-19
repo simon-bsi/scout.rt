@@ -192,7 +192,7 @@ export class ContextMenuPopup extends Popup implements ContextMenuPopupModel {
     parentMenu.$placeHolder.replaceWith(parentMenu.$container);
     parentMenu.$container.toggleClass('expanded', false);
     this._updateFirstLastClass();
-    this.updateNextToSelected('menu-item', parentMenu.$container);
+    this.updateAriaActiveDescendant('menu-item', parentMenu.$container);
 
     parentMenu.$subMenuBody.detach();
     this._processSubMenuQueue();
@@ -240,8 +240,6 @@ export class ContextMenuPopup extends Popup implements ContextMenuPopupModel {
     let popupBounds = this.htmlComp.bounds();
     let $oldBody = this.$body;
     internalParentMenu.__originalParent.$subMenuBody = $oldBody;
-    let $menuItems = this.$body.find('.menu-item');
-    $menuItems.removeClass('next-to-selected');
 
     if (!internalParentMenu.$subMenuBody) {
       this._renderBody();
@@ -270,7 +268,7 @@ export class ContextMenuPopup extends Popup implements ContextMenuPopupModel {
     HtmlComponent.get(this.$body).invalidateLayoutTree();
     this.validateLayoutTree();
     this.position();
-    this.updateNextToSelected();
+    this.updateAriaActiveDescendant();
 
     if (animated) {
       this._animateRenderSubMenuItems(internalParentMenu, popupBounds, parentMenuPosition);
@@ -509,15 +507,10 @@ export class ContextMenuPopup extends Popup implements ContextMenuPopupModel {
     }
   }
 
-  updateNextToSelected(menuItemClass?: string, $selectedItem?: JQuery) {
-    menuItemClass = menuItemClass ? menuItemClass : 'menu-item';
-    let $all = this.$body.find('.' + menuItemClass);
-    $selectedItem = $selectedItem ? $selectedItem : this.$body.find('.' + menuItemClass + '.selected');
+  updateAriaActiveDescendant(menuItemClass?: string, $selectedItem?: JQuery) {
+    menuItemClass = menuItemClass || 'menu-item';
+    $selectedItem = $selectedItem || this.$body.find('.' + menuItemClass + '.selected');
     aria.linkElementWithActiveDescendant(this.$container, $selectedItem);
-    $all.removeClass('next-to-selected');
-    if ($selectedItem.hasClass('selected')) {
-      $selectedItem.nextAll(':visible').first().addClass('next-to-selected');
-    }
   }
 
   protected _onMenuItemAction(event: Event<Action>) {

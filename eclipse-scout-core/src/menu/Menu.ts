@@ -182,7 +182,7 @@ export class Menu extends Action implements MenuModel {
       // because the property change event is fired before renderSelected is called,
       // and updateNextToSelected depends on the UI state
       if (this.parent instanceof ContextMenuPopup) {
-        this.parent.updateNextToSelected();
+        this.parent.updateAriaActiveDescendant();
       }
     }
     let hasPopup = this._doActionTogglesSubMenu() || this._doActionTogglesPopup();

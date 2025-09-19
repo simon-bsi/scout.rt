@@ -7,10 +7,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {ContextMenuPopup, KeyStrokeContext, MenuExecByNumberKeyStroke, MenuNavigationDownKeyStroke, MenuNavigationExecKeyStroke, MenuNavigationUpKeyStroke, SubCloseKeyStroke} from '../index';
+import {ContextMenuContainer, KeyStrokeContext, MenuExecByNumberKeyStroke, MenuNavigationDownKeyStroke, MenuNavigationExecKeyStroke, MenuNavigationUpKeyStroke, SubCloseKeyStroke} from '../index';
 
 export const menuNavigationKeyStrokes = {
-  registerKeyStrokes(keyStrokeContext: KeyStrokeContext, popup: ContextMenuPopup, menuItemClass: string) {
+  registerKeyStrokes(keyStrokeContext: KeyStrokeContext, popup: ContextMenuContainer, menuItemClass: string) {
     keyStrokeContext.registerKeyStrokes([
       new MenuNavigationUpKeyStroke(popup, menuItemClass),
       new MenuNavigationDownKeyStroke(popup, menuItemClass),
@@ -21,11 +21,12 @@ export const menuNavigationKeyStrokes = {
   },
 
   /** @internal */
-  _findMenuItems(popup: ContextMenuPopup, menuItemClass: string): { $all: JQuery; $allVisible: JQuery; $selected: JQuery } {
+  _findMenuItems(popup: ContextMenuContainer, menuItemClass: string): { $all: JQuery; $allVisible: JQuery; $selected: JQuery } {
+    let $body = popup.$body || popup.$container;
     return {
-      $all: popup.$body.find('.' + menuItemClass),
-      $allVisible: popup.$body.find('.' + menuItemClass + ':visible'),
-      $selected: popup.$body.find('.' + menuItemClass + '.selected')
+      $all: $body.find('.' + menuItemClass),
+      $allVisible: $body.find('.' + menuItemClass + ':visible'),
+      $selected: $body.find('.' + menuItemClass + '.selected')
     };
   }
 };

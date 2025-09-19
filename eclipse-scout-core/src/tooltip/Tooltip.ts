@@ -7,7 +7,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {arrays, Desktop, Form, graphics, InitModelOf, keys, Menu, ObjectOrChildModel, Point, Rectangle, scout, scrollbars, Status, StatusSeverity, strings, TooltipEventMap, TooltipModel, Widget, WidgetPopup} from '../index';
+import {
+  arrays, Desktop, Form, graphics, InitModelOf, keys, KeyStrokeContext, Menu, menuNavigationKeyStrokes, ObjectOrChildModel, Point, Rectangle, scout, scrollbars, Status, StatusSeverity, strings, TooltipEventMap, TooltipModel, Widget,
+  WidgetPopup
+} from '../index';
 import $ from 'jquery';
 import KeyDownEvent = JQuery.KeyDownEvent;
 
@@ -137,6 +140,31 @@ export class Tooltip extends Widget implements TooltipModel {
     }
 
     this.findDesktopIf$Parent()?.tooltipRendered(this);
+  }
+
+  /**
+   * Makes the tooltip focusable and installs menu navigation keystrokes
+   */
+  installKeyboardNavigationForMenus() {
+    let $container = this.$container;
+    if (!$container.hasClass('has-menus') || $container.attr('tabindex') === '-1') {
+      // No menus or already installed
+      return;
+    }
+    $container.attr('tabindex', -1);
+    this.session.focusManager.installFocusContext($container);
+    this.session.focusManager.validateFocus();
+
+    let keyStrokeContext = new KeyStrokeContext();
+    keyStrokeContext.$scopeTarget = () => $container;
+    keyStrokeContext.$bindTarget = () => $container;
+    this.session.keyStrokeManager.installKeyStrokeContext(keyStrokeContext);
+    menuNavigationKeyStrokes.registerKeyStrokes(keyStrokeContext, this, 'menu-item');
+
+    this.one('remove', () => {
+      this.session.focusManager.uninstallFocusContext($container); // this.$container is not available anymore -> use a local variable instead
+      this.session.keyStrokeManager.uninstallKeyStrokeContext(keyStrokeContext);
+    });
   }
 
   protected override _postRender() {
@@ -456,6 +484,10 @@ export class Tooltip extends Widget implements TooltipModel {
   }
 
   protected _onDocumentKeyDown(event: KeyDownEvent) {
+    if (this.$container.isOrHas(this.$container.activeElement()) && event.which !== keys.ESC) {
+      // If focus is in tooltip, only close it when pressing ESC
+      return;
+    }
     if (scout.isOneOf(event.which,
       keys.CTRL, keys.SHIFT, keys.ALT,
       keys.NUM_LOCK, keys.CAPS_LOCK, keys.SCROLL_LOCK,

@@ -7,11 +7,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {ContextMenuPopup, keys, MenuNavigationKeyStroke, menuNavigationKeyStrokes} from '../index';
+import {ContextMenuContainer, keys, MenuNavigationKeyStroke, menuNavigationKeyStrokes} from '../index';
 
 export class MenuNavigationUpKeyStroke extends MenuNavigationKeyStroke {
 
-  constructor(popup: ContextMenuPopup, menuItemClass: string) {
+  constructor(popup: ContextMenuContainer, menuItemClass: string) {
     super(popup);
     this._menuItemClass = menuItemClass;
     this.which = [keys.UP];

@@ -21,6 +21,6 @@ export class FieldStatusExecKeyStroke extends KeyStroke {
   }
 
   override handle(event: JQuery.KeyboardEventBase) {
-    this.field.togglePopup();
+    this.field.doAction();
   }
 }

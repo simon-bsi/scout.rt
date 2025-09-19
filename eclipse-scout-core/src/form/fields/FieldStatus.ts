@@ -311,8 +311,16 @@ export class FieldStatus extends Widget implements FieldStatusModel {
   protected _onStatusMouseDown(event: JQuery.MouseDownEvent) {
     let statusDownEvent = this.trigger('statusMouseDown', event);
     if (!statusDownEvent.defaultPrevented) {
-      this.togglePopup();
+      this.doAction();
     }
+  }
+
+  doAction() {
+    this.togglePopup();
+    // Ensure the user can use keyboard to select the menus inside the tooltip.
+    // Ideally, this would be done by the tooltip itself, but some status tooltips will be opened during field input.
+    // In that case we do not want the tooltip to take the focus away from the input -> Only do it when the user explicitly requested the opening of the tooltip.
+    this.tooltip?.installKeyboardNavigationForMenus();
   }
 
   protected _updateTooltipVisibility(parent: Widget) {
