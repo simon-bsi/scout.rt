@@ -191,6 +191,22 @@ export const aria = {
   },
 
   /**
+   * Links the given element with the given error message by setting aria-errormessage.
+   *
+   * @see <a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-errormessage">ARIA: aria-errormessage</a>
+   */
+  linkElementWithErrorMessage($elem: JQuery<Element>, $errorMessage: JQuery<Element>) {
+    aria._linkElementWithTargetElement($elem, $errorMessage, 'aria-errormessage', AriaLabelledByInsertPosition.FRONT, true);
+  },
+
+  removeErrorMessage($elem: JQuery<Element>) {
+    if (!$elem) {
+      return;
+    }
+    $elem.removeAttr('aria-errormessage');
+  },
+
+  /**
    * Links the given element with the given details by setting aria-details.
    *
    * Per default linked details are added to existing linked details separated by space. If you want to completely replace the linked details, set replace to true.
@@ -397,6 +413,19 @@ export const aria = {
       return;
     }
     $elem.attr('aria-required', strings.asString(value));
+  },
+
+  /**
+   * @see <a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-invalid">ARIA: aria-invalid</a>
+   *
+   * @param $elem element to add/remove the attribute. If null, nothing is changed.
+   * @param value value of the attribute to set. If null, attribute is removed.
+   */
+  invalid($elem: JQuery<Element>, value: boolean) {
+    if (!$elem) {
+      return;
+    }
+    $elem.attr('aria-invalid', strings.asString(value));
   },
 
   /**
