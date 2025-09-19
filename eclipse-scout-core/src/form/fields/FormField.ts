@@ -459,6 +459,7 @@ export class FormField extends Widget implements FormFieldModel {
 
     this._updateErrorStatusClasses(statusClass, hasStatus);
     this._updateFieldStatus();
+    this._updateAriaDescAndErrorMessage();
   }
 
   protected _errorStatusClass(): string {
@@ -508,7 +509,7 @@ export class FormField extends Widget implements FormFieldModel {
     }
 
     this._updateFieldStatus();
-    aria.description(this.$field, this.tooltipText);
+    this._updateAriaDescAndErrorMessage();
 
     if (this.$fieldContainer) {
       if (this.hasOnFieldTooltip()) {

@@ -46,8 +46,8 @@ export class ProposalField extends SmartField<string> implements ProposalFieldMo
     return 'proposal-field';
   }
 
-  protected override _addAriaFieldDescription() {
-    aria.addHiddenDescriptionAndLinkToElement(this.$field, this.id + '-func-desc', this.session.text('ui.AriaProposalFieldDescription'));
+  protected override _addAriaFieldDetails() {
+    aria.addDynamicDetailsAndLinkToElement(this.$field, this.session.text('ui.AriaProposalFieldDescription'));
   }
 
   protected override _handleEnterKey(event: JQuery.KeyDownEvent) {

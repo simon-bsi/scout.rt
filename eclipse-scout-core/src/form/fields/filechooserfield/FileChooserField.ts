@@ -67,7 +67,7 @@ export class FileChooserField extends ValueField<File> implements FileChooserFie
     this._renderFileInput();
     this.addIcon();
     this.addStatus();
-    this._addAriaFieldDescription();
+    this._addAriaFieldDetails();
   }
 
   protected _renderFileInput() {
@@ -158,7 +158,7 @@ export class FileChooserField extends ValueField<File> implements FileChooserFie
     return files && files.length ? files[0] : null;
   }
 
-  protected _addAriaFieldDescription() {
-    aria.addHiddenDescriptionAndLinkToElement(this.fileInput.$fileInput, this.id + '-func-desc', this.session.text('ui.AriaFileChooserFieldDescription'));
+  protected _addAriaFieldDetails() {
+    aria.addDynamicDetailsAndLinkToElement(this.fileInput.$fileInput, this.session.text('ui.AriaFileChooserFieldDescription'));
   }
 }

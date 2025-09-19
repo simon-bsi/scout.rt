@@ -107,9 +107,9 @@ export const focusUtils = {
   },
 
   /**
-   * @returns true if the given HTML element is the active element in its own document, false otherwise.
+   * @returns true if the given DOM element is the active element in its own document, false otherwise.
    */
-  isActiveElement(element: HTMLElement | JQuery): boolean {
+  isActiveElement(element: Element | JQuery<Element>): boolean {
     if (!element) {
       return false;
     }
@@ -118,8 +118,7 @@ export const focusUtils = {
       activeElement = (element as JQuery).activeElement(true);
       element = element[0];
     } else {
-      let htmlElement = element as HTMLElement;
-      let ownerDocument = htmlElement instanceof Document ? htmlElement : htmlElement.ownerDocument;
+      let ownerDocument = element instanceof Document ? element : (element as Element).ownerDocument;
       activeElement = ownerDocument.activeElement;
     }
     return activeElement === element;

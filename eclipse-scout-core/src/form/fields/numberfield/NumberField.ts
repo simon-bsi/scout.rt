@@ -65,7 +65,7 @@ export class NumberField extends BasicField<number, number | string> implements 
     let $field = fields.makeTextField(this.$parent);
     this.addField($field);
     this.addStatus();
-    this._addAriaFieldDescription();
+    this._addAriaFieldDetails();
   }
 
   protected override _renderGridData() {
@@ -232,7 +232,7 @@ export class NumberField extends BasicField<number, number | string> implements 
     }
   }
 
-  protected _addAriaFieldDescription() {
-    aria.addHiddenDescriptionAndLinkToElement(this.$field, this.id + '-func-desc', this.session.text('ui.AriaNumberFieldDescription'));
+  protected _addAriaFieldDetails() {
+    aria.addDynamicDetailsAndLinkToElement(this.$field, this.session.text('ui.AriaNumberFieldDescription'));
   }
 }

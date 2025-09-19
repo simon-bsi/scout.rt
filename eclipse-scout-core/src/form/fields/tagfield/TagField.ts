@@ -91,11 +91,11 @@ export class TagField extends ValueField<string[]> implements TagFieldModel {
     this.addField($field);
     this.maxLengthHandler.install($field);
     this.addStatus();
-    this._addAriaFieldDescription();
+    this._addAriaFieldDetails();
   }
 
-  protected _addAriaFieldDescription() {
-    aria.addHiddenDescriptionAndLinkToElement(this.$field, this.id + '-func-desc', this.session.text('ui.AriaTagFieldDescription'));
+  protected _addAriaFieldDetails() {
+    aria.addDynamicDetailsAndLinkToElement(this.$field, this.session.text('ui.AriaTagFieldDescription'));
   }
 
   protected override _renderProperties() {

@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {Device, ObjectIdProvider, objects, strings} from './index';
+import {Device, focusUtils, ObjectIdProvider, objects, strings} from './index';
 
 /**
  * Determines whether a labelledby id is inserted at the front or the back of current aria-labelledby value.
@@ -191,19 +191,63 @@ export const aria = {
   },
 
   /**
-   * Adds {@param description} to {@param $elem} by adding and linking a screen reader only text to {@param $elem}
+   * Links the given element with the given details by setting aria-details.
    *
-   * @see <a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-describedby">ARIA: aria-describedby</a>
+   * Per default linked details are added to existing linked details separated by space. If you want to completely replace the linked details, set replace to true.
+   *
+   * @see <a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-details">ARIA: aria-details</a>
    */
-  addHiddenDescriptionAndLinkToElement($elem: JQuery<Element>, id: string, description: string, position = AriaLabelledByInsertPosition.FRONT, replace = false): JQuery<Element> {
-    if (!$elem || strings.empty(description)) {
+  linkElementWithDetails($elem: JQuery<Element>, $details: JQuery<Element>, position = AriaLabelledByInsertPosition.FRONT, replace = false) {
+    aria._linkElementWithTargetElement($elem, $details, 'aria-details', position, replace);
+  },
+
+  /**
+   * Adds {@param details} to {@param $elem} by adding and linking a screen reader only text to {@param $elem}.
+   * The details element will be added on element focus and removed on blur.
+   *
+   * @see <a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-describedby">ARIA: aria-details</a>
+   */
+  addDynamicDetailsAndLinkToElement($elem: JQuery<Element>, details: string) {
+    if (!$elem || strings.empty(details)) {
       return;
     }
-    let $descriptionElement = $elem.beforeDiv().addClass('text').attr('id', 'desc' + id).text(description);
-    aria.hidden($descriptionElement, true); // hide the element in the accessibility tree, or it may be read twice
-    aria.screenReaderOnly($descriptionElement);
-    aria.linkElementWithDescription($elem, $descriptionElement, position, replace);
-    return $descriptionElement;
+
+    removeDetails();
+    if (focusUtils.isActiveElement($elem)) {
+      // TODO CGU write test case
+      addDetails();
+    }
+
+    $elem.off('focus.ariaDetails');
+    $elem.on('focus.ariaDetails', event => {
+      addDetails();
+    });
+    $elem.on('blur', event => {
+      removeDetails();
+    });
+
+    function addDetails() {
+      let $detailsElement = $elem.prev('.aria-details');
+      if ($detailsElement.length) {
+        return;
+      }
+      let detailsId = ObjectIdProvider.get().createUiSeqId();
+      $detailsElement = $elem.makeSpan().insertBefore($elem).addClass('aria-details').attr('id', detailsId).attr('aria-hidden', 'true').text(details);
+      aria.screenReaderOnly($detailsElement);
+      aria.linkElementWithDetails($elem, $detailsElement, AriaLabelledByInsertPosition.FRONT, true);
+    }
+
+    function removeDetails() {
+      $elem.prev('.aria-details').remove();
+      aria.removeDetails($elem);
+    }
+  },
+
+  removeDetails($elem: JQuery<Element>) {
+    if (!$elem) {
+      return;
+    }
+    $elem.removeAttr('aria-details');
   },
 
   /**

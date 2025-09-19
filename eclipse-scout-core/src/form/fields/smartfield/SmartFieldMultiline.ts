@@ -49,7 +49,7 @@ export class SmartFieldMultiline<TValue> extends SmartField<TValue> {
     }
     this.addIcon();
     this.addStatus();
-    this._addAriaFieldDescription();
+    this._addAriaFieldDetails();
   }
 
   protected override _renderEnabled() {

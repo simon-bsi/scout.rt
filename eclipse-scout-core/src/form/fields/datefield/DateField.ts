@@ -217,7 +217,7 @@ export class DateField extends ValueField<Date, Date | string> implements DateFi
         .on('mousedown', this._onDateFieldMouseDown.bind(this))
         .appendTo(this.$field);
       this._linkWithLabel(this.$dateField);
-      aria.addHiddenDescriptionAndLinkToElement(this.$dateField, this.id + '-date-func-desc', this.session.text('ui.AriaDateFieldDescription', this.dateFormatPattern));
+      aria.addDynamicDetailsAndLinkToElement(this.$dateField, this.session.text('ui.AriaDateFieldDescription', this.dateFormatPattern));
       if (this.$timeField) {
         // make sure date field comes before time field, otherwise tab won't work as expected
         this.$dateField.insertBefore(this.$timeField);
@@ -272,7 +272,7 @@ export class DateField extends ValueField<Date, Date | string> implements DateFi
         .on('mousedown', this._onTimeFieldMouseDown.bind(this))
         .appendTo(this.$field);
       this._linkWithLabel(this.$timeField);
-      aria.addHiddenDescriptionAndLinkToElement(this.$timeField, this.id + '-time-func-desc', this.session.text('ui.AriaTimeFieldDescription', this.timeFormatPattern));
+      aria.addDynamicDetailsAndLinkToElement(this.$timeField, this.session.text('ui.AriaTimeFieldDescription', this.timeFormatPattern));
       if (this.$dateField) {
         // make sure time field comes after date field, otherwise tab won't work as expected
         this.$timeField.insertAfter(this.$dateField);
@@ -358,6 +358,10 @@ export class DateField extends ValueField<Date, Date | string> implements DateFi
     }
   }
 
+  protected _renderDateFormatPattern() {
+    aria.addDynamicDetailsAndLinkToElement(this.$dateField, this.session.text('ui.AriaDateFieldDescription', this.dateFormatPattern));
+  }
+
   setTimeFormatPattern(timeFormatPattern: string) {
     this.setProperty('timeFormatPattern', timeFormatPattern);
   }
@@ -373,6 +377,10 @@ export class DateField extends ValueField<Date, Date | string> implements DateFi
       // if format changes on the fly, just update the display text
       this._updateDisplayText();
     }
+  }
+
+  protected _renderTimeFormatPattern() {
+    aria.addDynamicDetailsAndLinkToElement(this.$timeField, this.session.text('ui.AriaTimeFieldDescription', this.timeFormatPattern));
   }
 
   protected override _renderEnabled() {

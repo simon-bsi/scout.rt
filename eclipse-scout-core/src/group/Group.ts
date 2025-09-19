@@ -112,11 +112,11 @@ export class Group<TBody extends Widget = Widget> extends Widget implements Grou
     this.$collapseBorderRight = this.$footer.appendDiv('group-collapse-border');
     this.htmlFooter = HtmlComponent.install(this.$footer, this.session);
     this.$footer.on('mousedown', this._onFooterMouseDown.bind(this));
-    this._addAriaFieldDescription();
+    this._addAriaFieldDetails();
   }
 
-  protected _addAriaFieldDescription() {
-    aria.addHiddenDescriptionAndLinkToElement(this.$header, this.id + '-func-desc', this.session.text('ui.AriaGroupDescription'));
+  protected _addAriaFieldDetails() {
+    aria.addDynamicDetailsAndLinkToElement(this.$header, this.session.text('ui.AriaGroupDescription'));
   }
 
   protected override _renderProperties() {

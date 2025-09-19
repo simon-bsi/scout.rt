@@ -31,7 +31,7 @@ export class IntegerField extends NumberField {
     super._setFractionDigits(0);
   }
 
-  protected override _addAriaFieldDescription() {
-    aria.addHiddenDescriptionAndLinkToElement(this.$field, this.id + '-func-desc', this.session.text('ui.AriaIntegerFieldDescription'));
+  protected override _addAriaFieldDetails() {
+    aria.addDynamicDetailsAndLinkToElement(this.$field, this.session.text('ui.AriaIntegerFieldDescription'));
   }
 }
