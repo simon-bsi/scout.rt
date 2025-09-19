@@ -23,7 +23,6 @@ export abstract class NavigateButton extends Menu implements NavigateButtonModel
   node: Page;
   outline: Outline;
   altKeyStrokeContext: KeyStrokeContext;
-  overflow: boolean;
 
   protected _defaultText: string;
   protected _defaultIconId: string;
@@ -39,13 +38,7 @@ export abstract class NavigateButton extends Menu implements NavigateButtonModel
   }
 
   protected override _render() {
-    if (this.overflow) {
-      this.text = this.session.text(this._defaultText);
-      this.iconId = null;
-    } else {
-      this.text = null;
-      this.iconId = this._defaultIconId;
-    }
+    this.iconId = this._defaultIconId;
     this.updateEnabled();
     super._render();
     this.$container.addClass('navigate-button small');
