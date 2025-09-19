@@ -8,7 +8,9 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 import {
-  aria, arrays, ContextMenuPopup, EventHandler, FieldStatusEventMap, FieldStatusModel, FormField, FormFieldStatusPosition, HierarchyChangeEvent, HtmlComponent, Menu, PropertyChangeEvent, scout, Status, StatusOrModel, strings, Tooltip,
+  aria, arrays, ContextMenuPopup, EventHandler, FieldStatusEventMap, FieldStatusExecKeyStroke, FieldStatusModel, FormField, FormFieldStatusPosition, HierarchyChangeEvent, HtmlComponent, KeyStrokeContext, Menu, PropertyChangeEvent, scout,
+  Status, StatusOrModel,
+  strings, Tooltip,
   Widget
 } from '../../index';
 
@@ -37,15 +39,26 @@ export class FieldStatus extends Widget implements FieldStatusModel {
     this.updating = false;
     this.autoRemove = true;
     this.position = FormField.StatusPosition.DEFAULT;
+    this.inheritAccessibility = false;
 
     this._parents = [];
     this._parentPropertyChangeListener = this._onParentPropertyChange.bind(this);
     this._parentHierarchyChangeListener = this._onParentHierarchyChange.bind(this);
   }
 
+  protected override _createKeyStrokeContext(): KeyStrokeContext {
+    return new KeyStrokeContext();
+  }
+
+  protected override _initKeyStrokeContext() {
+    super._initKeyStrokeContext();
+    this.keyStrokeContext.registerKeyStroke(new FieldStatusExecKeyStroke(this));
+  }
+
   protected override _render() {
     this.$container = this.$parent.appendSpan('status')
-      .on('mousedown', this._onStatusMouseDown.bind(this));
+      .on('mousedown', this._onStatusMouseDown.bind(this))
+      .unfocusable();
     this.htmlComp = HtmlComponent.install(this.$container, this.session);
   }
 
@@ -119,6 +132,12 @@ export class FieldStatus extends Widget implements FieldStatusModel {
     if (!this.updating) {
       this._updatePopup();
     }
+    let hasMenus = !arrays.empty(this.menus);
+    aria.label(this.$container, hasMenus ? this.session.text('ui.MoreActions') : null);
+    aria.role(this.$container, hasMenus ? 'button' : null);
+    aria.hasPopup(this.$container, hasMenus ? 'menu' : null);
+    aria.expanded(this.$container, hasMenus ? !!this.contextMenu : null);
+    this.$container.setTabbable(hasMenus);
   }
 
   setAutoRemove(autoRemove: boolean) {
@@ -234,12 +253,16 @@ export class FieldStatus extends Widget implements FieldStatusModel {
     });
     this.contextMenu.open();
     this.$container.addClass('selected');
+    aria.linkElementWithControls(this.$container, this.contextMenu.$container);
     this.contextMenu.one('destroy', () => {
       this.contextMenu = null;
       if (this.$container) {
         this.$container.removeClass('selected');
+        aria.expanded(this.$container, false);
+        aria.removeControls(this.$container);
       }
     });
+    aria.expanded(this.$container, true);
   }
 
   hidePopup() {
