@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {GroupBox, Menu, scout, SmartField, Status, StringField} from '../../../src/index';
+import {GroupBox, Menu, scout, SmartField, Status, StringField, ValueField} from '../../../src/index';
 import {FormSpecHelper, JQueryTesting} from '../../../src/testing/index';
 
 describe('FieldStatus', () => {
@@ -22,6 +22,71 @@ describe('FieldStatus', () => {
 
   afterEach(() => {
     jasmine.clock().uninstall();
+  });
+
+  describe('visibility', () => {
+    it('is invisible if it has no menus and no status', () => {
+      let model = helper.createFieldModel(StringField);
+      let formField = new StringField();
+      formField.init(model);
+      formField.render();
+      expect(formField.fieldStatus.$container).toHaveClass('invisible');
+
+      formField.setErrorStatus({
+        severity: Status.Severity.ERROR,
+        message: 'foo'
+      });
+      expect(formField.fieldStatus.$container).not.toHaveClass('invisible');
+
+      formField.setErrorStatus(null);
+      expect(formField.fieldStatus.$container).toHaveClass('invisible');
+
+      formField.setTooltipText('text');
+      expect(formField.fieldStatus.$container).not.toHaveClass('invisible');
+
+      formField.setTooltipText(null);
+      expect(formField.fieldStatus.$container).toHaveClass('invisible');
+
+      formField.setMenus([{objectType: Menu}]);
+      expect(formField.fieldStatus.$container).not.toHaveClass('invisible');
+
+      formField.setMenus(null);
+      expect(formField.fieldStatus.$container).toHaveClass('invisible');
+    });
+
+    it('is invisible if menusVisible is false', () => {
+      let model = helper.createFieldModel(StringField);
+      let formField = new StringField();
+      formField.init(model);
+      formField.render();
+      expect(formField.fieldStatus.$container).toHaveClass('invisible');
+
+      formField.setMenus([{objectType: Menu}]);
+      expect(formField.fieldStatus.$container).not.toHaveClass('invisible');
+
+      formField.setMenusVisible(false);
+      expect(formField.fieldStatus.$container).toHaveClass('invisible');
+
+      formField.setMenusVisible(true);
+      expect(formField.fieldStatus.$container).not.toHaveClass('invisible');
+    });
+
+    it('is invisible if it has no visible menus', () => {
+      let model = helper.createFieldModel(StringField);
+      let formField = new StringField();
+      formField.init(model);
+      formField.render();
+      expect(formField.fieldStatus.$container).toHaveClass('invisible');
+
+      formField.setMenus([{objectType: Menu, menuTypes: [ValueField.MenuType.NotNull]}]);
+      expect(formField.fieldStatus.$container).toHaveClass('invisible');
+
+      formField.setValue('value');
+      expect(formField.fieldStatus.$container).not.toHaveClass('invisible');
+
+      formField.setValue(null);
+      expect(formField.fieldStatus.$container).toHaveClass('invisible');
+    });
   });
 
   describe('parent changes visibility', () => {
@@ -177,6 +242,58 @@ describe('FieldStatus', () => {
       });
       formField.setErrorStatus(status1);
       expect(formField.fieldStatus.tooltip.$content).toHaveAttr('role', 'alert');
+    });
+
+    it('toggles expanded and controls attributes of tooltip', () => {
+      let model = helper.createFieldModel();
+      let formField = new StringField();
+      formField.init(model);
+      formField.render();
+      expect(formField.fieldStatus.$container).toHaveAttr('role', 'button');
+      expect(formField.fieldStatus.$container).toHaveAttr('aria-haspopup', 'menu');
+      expect(formField.fieldStatus.$container).toHaveAttr('aria-expanded', 'false');
+      expect(formField.fieldStatus.$container).toHaveAttr('tabindex');
+      expect(formField.fieldStatus.$container).not.toHaveAttr('aria-controls');
+
+      formField.setTooltipText('hi there');
+      expect(formField.fieldStatus.$container).not.toHaveAttr('aria-controls');
+      expect(formField.fieldStatus.$container).toHaveAttr('aria-expanded', 'false');
+
+      formField.fieldStatus.doAction();
+      expect(formField.fieldStatus.$container).toHaveAttr('aria-controls', formField.fieldStatus.tooltip.$container.attr('id'));
+      expect(formField.fieldStatus.$container).toHaveAttr('aria-expanded', 'true');
+
+      formField.fieldStatus.doAction();
+      expect(formField.fieldStatus.$container).not.toHaveAttr('aria-controls');
+      expect(formField.fieldStatus.$container).toHaveAttr('aria-expanded', 'false');
+    });
+
+    it('toggles expanded and controls attributes of menu', () => {
+      let model = helper.createFieldModel();
+      let formField = new StringField();
+      formField.init(model);
+      formField.render();
+      expect(formField.fieldStatus.$container).toHaveAttr('role', 'button');
+      expect(formField.fieldStatus.$container).toHaveAttr('aria-haspopup', 'menu');
+      expect(formField.fieldStatus.$container).toHaveAttr('aria-expanded', 'false');
+      expect(formField.fieldStatus.$container).toHaveAttr('tabindex');
+      expect(formField.fieldStatus.$container).not.toHaveAttr('aria-controls');
+
+      formField.setMenus([{objectType: Menu}]);
+      expect(formField.fieldStatus.$container).not.toHaveAttr('aria-controls');
+      expect(formField.fieldStatus.$container).toHaveAttr('aria-expanded', 'false');
+
+      session.desktop.one('popupOpen', event => {
+        event.popup.animateOpening = false;
+      });
+      formField.fieldStatus.doAction();
+      expect(formField.fieldStatus.$container).toHaveAttr('aria-controls', formField.fieldStatus.contextMenu.$container.attr('id'));
+      expect(formField.fieldStatus.$container).toHaveAttr('aria-expanded', 'true');
+
+      formField.fieldStatus.contextMenu.animateRemoval = false;
+      formField.fieldStatus.doAction();
+      expect(formField.fieldStatus.$container).not.toHaveAttr('aria-controls');
+      expect(formField.fieldStatus.$container).toHaveAttr('aria-expanded', 'false');
     });
   });
 });
