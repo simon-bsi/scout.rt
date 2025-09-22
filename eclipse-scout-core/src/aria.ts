@@ -491,11 +491,11 @@ export const aria = {
    * @param $elem element to add/remove the attribute. If null, nothing is changed.
    * @param type value of the attribute to set. If null, attribute is removed.
    */
-  hasPopup($elem: JQuery<Element>, type: string) {
+  hasPopup($elem: JQuery<Element>, type: 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog' | 'true' | 'false' | boolean) {
     if (!$elem) {
       return;
     }
-    $elem.attr('aria-haspopup', type);
+    $elem.attr('aria-haspopup', strings.asString(type));
   },
 
   /**
@@ -543,7 +543,7 @@ export const aria = {
    * @param $elem element to add/remove the attribute. If null, nothing is changed.
    * @param value value of the attribute to set. If null, attribute is removed.
    */
-  live($elem: JQuery<Element>, value: string) {
+  live($elem: JQuery<Element>, value: 'assertive' | 'polite' | 'off') {
     if (!$elem) {
       return;
     }
@@ -617,6 +617,9 @@ export const aria = {
 
   /**
    * @see <a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-disabled">ARIA: aria-disabled</a>
+   *
+   * @param $elem element to add/remove the attribute. If null, nothing is changed.
+   * @param value value of the attribute to set. If null, attribute is removed.
    */
   disabled($elem: JQuery<Element>, value: boolean) {
     if (!$elem) {
@@ -627,6 +630,9 @@ export const aria = {
 
   /**
    * @see <a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-modal">ARIA: aria-modal</a>
+   *
+   * @param $elem element to add/remove the attribute. If null, nothing is changed.
+   * @param value value of the attribute to set. If null, attribute is removed.
    */
   modal($elem: JQuery<Element>, value: boolean) {
     if (!$elem) {
