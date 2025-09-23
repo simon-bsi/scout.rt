@@ -18,17 +18,19 @@
   --table-aggregate-row-padding-y-small: @table-aggregate-padding-y-small;
   --table-aggregate-row-padding-y-large: @table-aggregate-padding-y-large;
 
-  &:focus,
-  &.focused,
-  &.perma-focus {
-    outline: none;
+  & > .table-data {
+    &:focus,
+    &.focused,
+    &.perma-focus {
+      outline: none;
 
-    & > .table-data > .table-row {
-      &.selected {
-        background-color: @item-selection-background-color;
+      & > .table-row {
+        &.selected {
+          background-color: @item-selection-background-color;
 
-        &::after {
-          border-color: @item-selection-border-color;
+          &::after {
+            border-color: @item-selection-border-color;
+          }
         }
       }
     }

@@ -8,10 +8,11 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 import {
-  Action, aria, arrays, ContextMenuPopup, DesktopPopupOpenEvent, Device, DoubleClickSupport, dragAndDrop, DragAndDropHandler, DropType, EnumObject, EventHandler, Filter, Filterable, FilterOrFunction, FilterResult, FilterSupport,
-  FullModelOf, graphics, HtmlComponent, InitModelOf, keys, KeyStrokeContext, keyStrokeModifier, LazyNodeFilter, Menu, MenuBar, MenuDestinations, MenuFilter, MenuItemsOrder, menus as menuUtil, ObjectOrChildModel, ObjectOrModel, objects,
-  Range, Rectangle, scout, scrollbars, ScrollDirection, ScrollToOptions, strings, tooltips, TreeBreadcrumbFilter, TreeCheckNodesResult, TreeCollapseAllKeyStroke, TreeCollapseOrDrillUpKeyStroke, TreeEventMap, TreeExpandOrDrillDownKeyStroke,
-  TreeLayout, TreeModel, TreeNavigationDownKeyStroke, TreeNavigationEndKeyStroke, TreeNavigationHomeKeyStroke, TreeNavigationUpKeyStroke, TreeNode, TreeNodeModel, TreeSpaceKeyStroke, UpdateFilteredElementsOptions, Widget
+  AbstractTreeNavigationKeyStroke, Action, aria, arrays, ContextMenuPopup, DesktopPopupOpenEvent, Device, DoubleClickSupport, dragAndDrop, DragAndDropHandler, DropType, EnumObject, EventHandler, Filter, Filterable, FilterOrFunction,
+  FilterResult, FilterSupport, FullModelOf, graphics, HtmlComponent, InitModelOf, keys, KeyStrokeContext, keyStrokeModifier, LazyNodeFilter, Menu, MenuBar, MenuDestinations, MenuFilter, MenuItemsOrder, menus as menuUtil, ObjectOrChildModel,
+  ObjectOrModel, objects, Range, Rectangle, scout, scrollbars, ScrollDirection, ScrollToOptions, strings, tooltips, TreeBreadcrumbFilter, TreeCheckKeyStroke, TreeCheckNodesResult, TreeCollapseAllKeyStroke, TreeCollapseOrDrillUpKeyStroke,
+  TreeEventMap, TreeExpandOrDrillDownKeyStroke, TreeLayout, TreeModel, TreeNavigationDownKeyStroke, TreeNavigationEndKeyStroke, TreeNavigationHomeKeyStroke, TreeNavigationUpKeyStroke, TreeNode, TreeNodeModel, TreeSelectKeyStroke,
+  UpdateFilteredElementsOptions, Widget
 } from '../index';
 import $ from 'jquery';
 
@@ -52,6 +53,8 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
   selectedNodes: TreeNode[];
   /** The previously selected node, relevant for breadcrumb in compact mode */
   prevSelectedNode: TreeNode;
+  focusedNode: TreeNode;
+  nodesFocusable = false;
   filters: Filter<TreeNode>[];
   textFilterEnabled: boolean;
   filterSupport: FilterSupport<TreeNode>;
@@ -226,6 +229,7 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
     this._setDisplayStyle(this.displayStyle);
     this._setKeyStrokes(this.keyStrokes);
     this._setMenus(this.menus);
+    this._setFocusedNode(this.focusedNode || this.selectedNodes[0]);
   }
 
   /**
@@ -284,12 +288,14 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
   protected override _initKeyStrokeContext() {
     super._initKeyStrokeContext();
     this._initTreeKeyStrokeContext();
+    this._setNodesFocusable(this.nodesFocusable);
   }
 
   protected _initTreeKeyStrokeContext() {
     let modifierBitMask = keyStrokeModifier.NONE;
     this.keyStrokeContext.registerKeyStrokes([
-      new TreeSpaceKeyStroke(this),
+      new TreeSelectKeyStroke(this),
+      new TreeCheckKeyStroke(this),
       new TreeNavigationUpKeyStroke(this, modifierBitMask),
       new TreeNavigationDownKeyStroke(this, modifierBitMask),
       new TreeNavigationHomeKeyStroke(this, modifierBitMask),
@@ -458,6 +464,7 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
     super._renderProperties();
     this._renderTextFilterEnabled();
     this._renderMultiCheck();
+    this._renderFocusedNode();
   }
 
   protected override _postRender() {
@@ -531,6 +538,10 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
   }
 
   override get$Scrollable(): JQuery {
+    return this.$data;
+  }
+
+  override get$Focusable(): JQuery {
     return this.$data;
   }
 
@@ -998,7 +1009,7 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
     this._installOrUninstallDragAndDropHandler();
     let enabled = this.enabledComputed;
     this.$data.setEnabled(enabled);
-    this.$container.setTabbableOrFocusable(enabled);
+    this.get$Focusable().setTabbableOrFocusable(enabled);
   }
 
   protected override _renderDisabledStyle() {
@@ -2035,8 +2046,8 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
   }
 
   ensureExpansionVisible(node: TreeNode) {
-    // only scroll if TreeNode is in dom and the current node is selected (user triggered expansion change)
-    if (!node || !node.$node || this.selectedNodes[0] !== node) {
+    // only scroll if TreeNode is in dom and the current node is selected or focused (user triggered expansion change)
+    if (!node || !node.$node || this.selectedNodes[0] !== node && this.focusedNode !== node) {
       return;
     }
     scrollbars.ensureExpansionVisible({
@@ -2123,12 +2134,11 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
   protected _setSelectedNodes(nodes: TreeNode[], debounceSend?: boolean) {
     // Make a copy so that original array stays untouched
     this.selectedNodes = nodes.slice();
-    this._nodesSelectedInternal(nodes);
+    this._nodesSelectedInternal();
     this._triggerNodesSelected(debounceSend);
 
     let selectedNode = this.selectedNode();
     if (selectedNode) {
-      aria.linkElementWithActiveDescendant(this.$container, selectedNode.$node);
       if (!this.visibleNodesMap[selectedNode.id]) {
         this._expandAllParentNodes(selectedNode);
         if (!this.visibleNodesMap[selectedNode.id] && !this.isBreadcrumbStyleActive()) {
@@ -2138,7 +2148,7 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
         }
       }
     }
-
+    this.setFocusedNode(selectedNode);
     this._updateItemPath(true);
     if (this.isBreadcrumbStyleActive()) {
       // In breadcrumb mode selected node has to be expanded
@@ -2154,7 +2164,7 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
   /**
    * This method is overridden by subclasses of Tree. The default impl. does nothing.
    */
-  protected _nodesSelectedInternal(nodes: TreeNode[]) {
+  protected _nodesSelectedInternal() {
     // NOP
   }
 
@@ -2491,6 +2501,9 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
 
     this.deselectNodes(deletedNodes, {collectChildren: true});
     this.uncheckNodes(deletedNodes, {collectChildren: true});
+    if (deletedNodes.includes(this.focusedNode)) {
+      this.setFocusedNode(null);
+    }
 
     // remove node from html document
     if (this.rendered) {
@@ -2526,6 +2539,7 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
 
     this.deselectNodes(nodes, {collectChildren: true});
     this.uncheckNodes(nodes, {collectChildren: true});
+    this.setFocusedNode(null);
 
     // remove node from html document
     if (this.rendered) {
@@ -3045,6 +3059,9 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
   protected _nodesFiltered(hiddenNodes: TreeNode[]) {
     // non visible nodes must be deselected
     this.deselectNodes(hiddenNodes);
+    if (hiddenNodes.includes(this.focusedNode)) {
+      this.setFocusedNode(null);
+    }
   }
 
   applyFiltersForNode(node: TreeNode, applyNewHiddenShownNodes = true, animated = false): TreeFilterResult {
@@ -3162,6 +3179,9 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
       }
       if (!node.rendered) {
         this._renderNode(node);
+        if (node === this.focusedNode) {
+          this._renderFocusedNode();
+        }
       }
       node._decorate();
       this._insertNodeInDOMAtPlace(node, index);
@@ -3468,10 +3488,10 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
     }
     // Set tree style to focused if a context menu or a menu bar popup opens, so that it looks as it still has the focus
     if (this.has(popup) && popup instanceof ContextMenuPopup) {
-      this.$container.addClass('focused');
+      this.get$Focusable().addClass('focused');
       popup.one('destroy', () => {
         if (this.rendered) {
-          this.$container.removeClass('focused');
+          this.get$Focusable().removeClass('focused');
         }
       });
     }
@@ -3479,6 +3499,56 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
 
   updateScrollbars() {
     scrollbars.update(this.$data);
+  }
+
+  setNodesFocusable(focusable: boolean) {
+    this.setProperty('nodesFocusable', focusable);
+  }
+
+  protected _setNodesFocusable(focusable: boolean) {
+    for (const keyStroke of this.keyStrokeContext.keyStrokes) {
+      if (keyStroke instanceof AbstractTreeNavigationKeyStroke) {
+        keyStroke.setNodesFocusable(focusable);
+      }
+    }
+    this._setProperty('nodesFocusable', focusable);
+  }
+
+  protected _renderNodesFocusable() {
+    this._renderFocusedNode();
+  }
+
+  setFocusedNode(node: TreeNode) {
+    this.setProperty('focusedNode', node);
+  }
+
+  protected _setFocusedNode(node: TreeNode | string) {
+    if (this.rendered) {
+      this._removeFocusedNode();
+    }
+    if (typeof node === 'string') {
+      node = this.nodeById(node as string);
+    }
+    this._setProperty('focusedNode', node);
+  }
+
+  protected _removeFocusedNode() {
+    this.focusedNode?.$node?.removeClass('focused');
+  }
+
+  protected _renderFocusedNode() {
+    this.focusedNode?.$node?.toggleClass('focused', this.nodesFocusable);
+    this.$container.toggleClass('no-nodes-focused', !this.nodesFocusable || !this.focusedNode);
+    this._updateActiveDescendant();
+  }
+
+  protected _updateActiveDescendant() {
+    let node = this.focusedNode?.$node || this.selectedNode()?.$node;
+    if (node) {
+      aria.linkElementWithActiveDescendant(this.$container, node);
+    } else {
+      aria.removeActiveDescendant(this.$container);
+    }
   }
 
   static collectSubtree($rootNode: JQuery, includeRootNodeInResult?: boolean): JQuery {
