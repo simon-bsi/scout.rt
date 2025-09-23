@@ -2134,9 +2134,7 @@ export class Widget extends PropertyEventEmitter implements WidgetModel, ObjectW
   }
 
   /**
-   * Tries to set the focus on the widget.
-   * <p>
-   * By default the focus is set on the container but this may vary from widget to widget.
+   * Tries to set the focus on the {@link getFocusableElement} of the widget.
    *
    * @param options.preventScroll prevents scrolling to new focused element (defaults to false)
    * @returns true if the element could be focused, false if not
@@ -2195,14 +2193,19 @@ export class Widget extends PropertyEventEmitter implements WidgetModel, ObjectW
   }
 
   /**
-   * This method returns the {@link HTMLElement} to be used when {@link focus} is called.
-   * It can be overridden, in case the widget needs to return something other than `this.$container[0]`.
+   * Returns the {@link HTMLElement} to be used when {@link focus} is called.
+   *
+   * In case another element than {@link $container} should be used, {@link get$Focusable} can be overridden.
    */
   getFocusableElement(): HTMLElement | JQuery {
-    if (this.rendered && this.$container) {
-      return this.$container[0];
+    if (!this.rendered) {
+      return null;
     }
-    return null;
+    return this.get$Focusable();
+  }
+
+  get$Focusable(): JQuery {
+    return this.$container;
   }
 
   protected _installScrollbars(options?: ScrollbarInstallOptions) {
