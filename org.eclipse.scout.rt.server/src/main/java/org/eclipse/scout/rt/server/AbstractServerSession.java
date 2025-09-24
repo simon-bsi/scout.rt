@@ -25,7 +25,6 @@ import org.eclipse.scout.rt.platform.util.CollectionUtility;
 import org.eclipse.scout.rt.platform.util.TypeCastUtility;
 import org.eclipse.scout.rt.platform.util.event.FastListenerList;
 import org.eclipse.scout.rt.platform.util.event.IFastListenerList;
-import org.eclipse.scout.rt.security.IAccessControlService;
 import org.eclipse.scout.rt.server.clientnotification.ClientNotificationRegistry;
 import org.eclipse.scout.rt.server.clientnotification.IClientNodeId;
 import org.eclipse.scout.rt.server.context.RunMonitorCancelRegistry;
@@ -45,6 +44,7 @@ import org.eclipse.scout.rt.shared.session.ISessionListener;
 import org.eclipse.scout.rt.shared.session.SessionData;
 import org.eclipse.scout.rt.shared.session.SessionEvent;
 import org.eclipse.scout.rt.shared.session.SessionMetricsHelper;
+import org.eclipse.scout.rt.shared.user.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,11 +101,6 @@ public abstract class AbstractServerSession implements IServerSession, Serializa
     m_sharedVariableMap.put(name, typedValue);
   }
 
-  private void assignUserId() {
-    String userId = BEANS.get(IAccessControlService.class).getUserIdOfCurrentSubject();
-    setUserIdInternal(userId);
-  }
-
   /**
    * The session is running in its event loop
    */
@@ -121,11 +116,7 @@ public abstract class AbstractServerSession implements IServerSession, Serializa
 
   @Override
   public final String getUserId() {
-    return getSharedContextVariable("userId", String.class);
-  }
-
-  private void setUserIdInternal(String newValue) {
-    setSharedContextVariable("userId", String.class, newValue);
+    return Users.CURRENT.get();
   }
 
   @Override
@@ -187,7 +178,7 @@ public abstract class AbstractServerSession implements IServerSession, Serializa
     assertFalse(isStopping(), "Session cannot be started because it is currently stopping.");
     m_id = assertNotNull(sessionId, "Session id must not be null");
 
-    assignUserId();
+    setSharedContextVariable("userId", String.class, getUserId()); // FIXME rsb remove this when shared variable map has been removed. Just used here to trigger sending the value to the client. Will be sent via initial request in the future.
     interceptLoadSession();
 
     m_active = true;

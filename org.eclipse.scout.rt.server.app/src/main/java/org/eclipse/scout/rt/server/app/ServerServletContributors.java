@@ -23,6 +23,7 @@ import org.eclipse.scout.rt.rest.ServletConstants;
 import org.eclipse.scout.rt.rest.cancellation.RestRequestCancellationServletFilter;
 import org.eclipse.scout.rt.server.commons.healthcheck.HealthCheckServlet;
 import org.eclipse.scout.rt.server.context.ServerRunContextFilter;
+import org.eclipse.scout.rt.server.context.ValidUserIdFilter;
 import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.glassfish.jersey.servlet.ServletProperties;
@@ -82,6 +83,18 @@ public final class ServerServletContributors {
     @Override
     public void contribute(ServletContextHandler handler) {
       handler.addFilter(ServerRunContextFilter.class, ServletConstants.API_PATH_WITH_WILDCARD, null);
+    }
+  }
+
+  /**
+   * After {@link ApiServerRunContextFilterContributor}.
+   */
+  @Order(2300)
+  public static class ValidUserIdFilterContributor implements IServletFilterContributor {
+
+    @Override
+    public void contribute(ServletContextHandler handler) {
+      handler.addFilter(ValidUserIdFilter.class, ServletConstants.API_PATH_WITH_WILDCARD, null);
     }
   }
 

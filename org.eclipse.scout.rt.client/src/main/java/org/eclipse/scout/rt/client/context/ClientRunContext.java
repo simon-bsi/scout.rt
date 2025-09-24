@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -38,6 +38,7 @@ import org.eclipse.scout.rt.shared.logging.UserIdContextValueProvider;
 import org.eclipse.scout.rt.shared.opentelemetry.OpenTelemetrySpanAttributeProcessor;
 import org.eclipse.scout.rt.shared.session.ScoutSessionIdContextValueProvider;
 import org.eclipse.scout.rt.shared.ui.UserAgent;
+import org.eclipse.scout.rt.shared.user.Users;
 
 /**
  * Use this class to propagate client-side context.
@@ -68,7 +69,8 @@ public class ClientRunContext extends RunContext {
         .add(new ThreadLocalProcessor<>(UserAgent.CURRENT, m_userAgent))
         .add(new ThreadLocalProcessor<>(IDesktop.CURRENT, m_desktop))
         .add(new ThreadLocalProcessor<>(IOutline.CURRENT, m_outline))
-        .add(new ThreadLocalProcessor<>(IForm.CURRENT, m_form));
+        .add(new ThreadLocalProcessor<>(IForm.CURRENT, m_form))
+        .add(new ThreadLocalProcessor<>(Users.CURRENT, m_session != null ? m_session.getUserId() : null));
   }
 
   @Override

@@ -28,6 +28,7 @@ import org.eclipse.scout.rt.platform.transaction.ITransactionMember;
 import org.eclipse.scout.rt.platform.transaction.TransactionScope;
 import org.eclipse.scout.rt.platform.util.ThreadLocalProcessor;
 import org.eclipse.scout.rt.platform.util.ToStringBuilder;
+import org.eclipse.scout.rt.security.IAccessControlService;
 import org.eclipse.scout.rt.server.IServerSession;
 import org.eclipse.scout.rt.server.clientnotification.ClientNotificationCollector;
 import org.eclipse.scout.rt.server.clientnotification.IClientNodeId;
@@ -38,6 +39,7 @@ import org.eclipse.scout.rt.shared.logging.UserIdContextValueProvider;
 import org.eclipse.scout.rt.shared.opentelemetry.OpenTelemetrySpanAttributeProcessor;
 import org.eclipse.scout.rt.shared.session.ScoutSessionIdContextValueProvider;
 import org.eclipse.scout.rt.shared.ui.UserAgent;
+import org.eclipse.scout.rt.shared.user.Users;
 
 import io.opentelemetry.context.Context;
 
@@ -70,7 +72,12 @@ public class ServerRunContext extends RunContext {
         .add(new OpenTelemetrySpanAttributeProcessor())
         .add(new ThreadLocalProcessor<>(UserAgent.CURRENT, m_userAgent))
         .add(new ThreadLocalProcessor<>(IClientNodeId.CURRENT, m_clientNodeId))
-        .add(new ThreadLocalProcessor<>(ClientNotificationCollector.CURRENT, m_clientNotificationCollector));
+        .add(new ThreadLocalProcessor<>(ClientNotificationCollector.CURRENT, m_clientNotificationCollector))
+        .add(new ThreadLocalProcessor<>(Users.CURRENT, getUserId()));
+  }
+
+  protected String getUserId() {
+    return BEANS.opt(IAccessControlService.class) != null ? BEANS.get(IAccessControlService.class).getUserId(m_subject) : null;
   }
 
   @Override
