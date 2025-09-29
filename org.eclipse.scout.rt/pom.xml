@@ -14,7 +14,7 @@
   <parent>
     <groupId>org.eclipse.scout</groupId>
     <artifactId>maven_rt_plugin_config-master</artifactId>
-    <version>25.2.1</version>
+    <version>26.1.0-SNAPSHOT</version>
     <relativePath />
   </parent>
 
@@ -757,7 +757,7 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>5.14.2</version>
+        <version>5.20.0</version>
       </dependency>
 
       <dependency>
