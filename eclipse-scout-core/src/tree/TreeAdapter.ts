@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 import {
-  App, arrays, CellModel, ChildModelOf, defaultValues, Event, ModelAdapter, objects, RemoteEvent, scout, Tree, TreeDropEvent, TreeNode, TreeNodeActionEvent, TreeNodeClickEvent, TreeNodeExpandedEvent, TreeNodeModel, TreeNodesCheckedEvent,
-  TreeNodesSelectedEvent
+  App, arrays, CellModel, ChildModelOf, defaultValues, Event, ModelAdapter, objects, RemoteEvent, scout, Tree, TreeDropEvent, TreeNode, TreeNodeActionEvent, TreeNodeChangedEvent, TreeNodeClickEvent, TreeNodeExpandedEvent, TreeNodeModel,
+  TreeNodesCheckedEvent, TreeNodesSelectedEvent
 } from '../index';
 
 export class TreeAdapter extends ModelAdapter {
@@ -113,6 +113,19 @@ export class TreeAdapter extends ModelAdapter {
     this._send('nodesChecked', data);
   }
 
+  protected _onWidgetNodeChanged(event: TreeNodeChangedEvent) {
+    if (!TreeAdapter.isRemote(event.node, true)) {
+      return;
+    }
+    this._send('nodeChanged', {
+      nodeId: event.node.id,
+      text: event.node.text,
+      htmlEnabled: event.node.htmlEnabled,
+      cssClass: event.node.cssClass,
+      iconId: event.node.iconId
+    });
+  }
+
   protected override _onWidgetEvent(event: Event<Tree>) {
     if (event.type === 'nodesSelected') {
       this._onWidgetNodesSelected(event as TreeNodesSelectedEvent);
@@ -124,6 +137,8 @@ export class TreeAdapter extends ModelAdapter {
       this._onWidgetNodeExpanded(event as TreeNodeExpandedEvent);
     } else if (event.type === 'nodesChecked') {
       this._onWidgetNodesChecked(event as TreeNodesCheckedEvent);
+    } else if (event.type === 'nodeChanged') {
+      this._onWidgetNodeChanged(event as TreeNodeChangedEvent);
     } else if (event.type === 'drop' && this.widget.dragAndDropHandler) {
       this.widget.dragAndDropHandler.uploadFiles(event as TreeDropEvent);
     } else {
@@ -253,6 +268,8 @@ export class TreeAdapter extends ModelAdapter {
     node.font = cell.font;
     node.htmlEnabled = cell.htmlEnabled;
 
+    // ignore all future node-changed-events by the widget while processing this remote event
+    this.addFilterForWidgetEvent((widgetEvent: TreeNodeChangedEvent) => widgetEvent.type === 'nodeChanged' && widgetEvent.node.id === nodeId);
     this.widget.changeNode(node);
   }
 

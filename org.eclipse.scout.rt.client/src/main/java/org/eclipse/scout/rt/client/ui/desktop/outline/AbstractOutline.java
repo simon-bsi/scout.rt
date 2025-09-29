@@ -30,11 +30,13 @@ import org.eclipse.scout.rt.client.ui.IWidget;
 import org.eclipse.scout.rt.client.ui.action.menu.IMenu;
 import org.eclipse.scout.rt.client.ui.action.menu.TableMenuType;
 import org.eclipse.scout.rt.client.ui.action.menu.TreeMenuType;
+import org.eclipse.scout.rt.client.ui.basic.cell.ICell;
 import org.eclipse.scout.rt.client.ui.basic.table.ITable;
 import org.eclipse.scout.rt.client.ui.basic.table.ITableRow;
 import org.eclipse.scout.rt.client.ui.basic.tree.AbstractTree;
 import org.eclipse.scout.rt.client.ui.basic.tree.ITreeNode;
 import org.eclipse.scout.rt.client.ui.basic.tree.ITreeNodeFilter;
+import org.eclipse.scout.rt.client.ui.basic.tree.ITreeUIFacade;
 import org.eclipse.scout.rt.client.ui.basic.tree.TreeEvent;
 import org.eclipse.scout.rt.client.ui.basic.tree.TreeListener;
 import org.eclipse.scout.rt.client.ui.desktop.outline.OutlineMenuWrapper.IMenuTypeMapper;
@@ -43,6 +45,7 @@ import org.eclipse.scout.rt.client.ui.desktop.outline.pages.IPage;
 import org.eclipse.scout.rt.client.ui.desktop.outline.pages.IPageWithNodes;
 import org.eclipse.scout.rt.client.ui.desktop.outline.pages.IPageWithTable;
 import org.eclipse.scout.rt.client.ui.desktop.outline.pages.ISearchForm;
+import org.eclipse.scout.rt.client.ui.desktop.outline.pages.js.IJsPage;
 import org.eclipse.scout.rt.client.ui.dnd.TransferObject;
 import org.eclipse.scout.rt.client.ui.form.FormEvent;
 import org.eclipse.scout.rt.client.ui.form.FormListener;
@@ -1102,5 +1105,20 @@ public abstract class AbstractOutline extends AbstractTree implements IOutline {
       BEANS.get(ExceptionHandler.class).handle(e);
     }
     super.disposeTreeInternal();
+  }
+
+  @Override
+  protected ITreeUIFacade createUIFacade() {
+    return new P_UIFacade();
+  }
+
+  protected class P_UIFacade extends AbstractTree.P_UIFacade {
+    @Override
+    public void changeNodeFromUI(ITreeNode node, ICell cell) {
+      super.changeNodeFromUI(node, cell);
+      if (node instanceof IJsPage jsPage) {
+        jsPage.changeNodeFromUI(cell);
+      }
+    }
   }
 }

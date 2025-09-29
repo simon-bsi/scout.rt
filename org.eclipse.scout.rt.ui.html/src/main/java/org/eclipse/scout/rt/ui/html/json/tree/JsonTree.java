@@ -26,6 +26,7 @@ import org.eclipse.scout.rt.client.ui.IEventHistory;
 import org.eclipse.scout.rt.client.ui.MouseButton;
 import org.eclipse.scout.rt.client.ui.action.keystroke.IKeyStroke;
 import org.eclipse.scout.rt.client.ui.action.menu.root.IContextMenu;
+import org.eclipse.scout.rt.client.ui.basic.cell.Cell;
 import org.eclipse.scout.rt.client.ui.basic.cell.ICell;
 import org.eclipse.scout.rt.client.ui.basic.tree.AutoCheckStyle;
 import org.eclipse.scout.rt.client.ui.basic.tree.CheckableStyle;
@@ -1040,6 +1041,9 @@ public class JsonTree<TREE extends ITree> extends AbstractJsonWidget<TREE> imple
     else if (EVENT_NODES_CHECKED.equals(event.getType())) {
       handleUiNodesChecked(event);
     }
+    else if (EVENT_NODE_CHANGED.equals(event.getType())) {
+      handleUiNodeChanged(event);
+    }
     else {
       super.handleUiEvent(event);
     }
@@ -1101,6 +1105,25 @@ public class JsonTree<TREE extends ITree> extends AbstractJsonWidget<TREE> imple
     int eventType = expanded ? TreeEvent.TYPE_NODE_EXPANDED : TreeEvent.TYPE_NODE_COLLAPSED;
     addTreeEventFilterCondition(eventType).setNodes(CollectionUtility.arrayList(node));
     getModel().getUIFacade().setNodeExpandedFromUI(node, expanded, lazy);
+  }
+
+  protected void handleUiNodeChanged(JsonEvent event) {
+    JSONObject json = event.getData();
+    String nodeId = json.getString(PROP_NODE_ID);
+    ITreeNode node = optTreeNodeForNodeId(nodeId);
+    if (node == null) {
+      LOG.info("Requested tree-node with ID {} doesn't exist. Skip nodeChanged event", nodeId);
+      return;
+    }
+    var cell = new Cell(node.getCell());
+    cell.setText(json.optString("text"));
+    cell.setHtmlEnabled(json.optBoolean("htmlEnabled"));
+    cell.setCssClass(json.optString("cssClass"));
+    cell.setIconId(json.optString("iconId"));
+
+    // ignore all future node-changed-events by the model while processing this json event
+    addTreeEventFilterCondition(TreeEvent.TYPE_NODE_CHANGED).setNodes(CollectionUtility.arrayList(node));
+    getModel().getUIFacade().changeNodeFromUI(node, cell);
   }
 
   @Override

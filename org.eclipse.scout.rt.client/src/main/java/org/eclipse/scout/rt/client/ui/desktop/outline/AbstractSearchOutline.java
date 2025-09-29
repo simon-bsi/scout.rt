@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -9,7 +9,6 @@
  */
 package org.eclipse.scout.rt.client.ui.desktop.outline;
 
-import org.eclipse.scout.rt.client.ui.basic.tree.AbstractTree;
 import org.eclipse.scout.rt.client.ui.basic.tree.ITreeUIFacade;
 import org.eclipse.scout.rt.platform.annotations.ConfigProperty;
 import org.eclipse.scout.rt.platform.classid.ClassId;
@@ -123,7 +122,7 @@ public abstract class AbstractSearchOutline extends AbstractOutline implements I
     return (ISearchOutlineUiFacade) super.getUIFacade();
   }
 
-  protected class P_UIFacade extends AbstractTree.P_UIFacade implements ISearchOutlineUiFacade {
+  protected class P_UIFacade extends AbstractOutline.P_UIFacade implements ISearchOutlineUiFacade {
 
     @Override
     public void search(String query) {
