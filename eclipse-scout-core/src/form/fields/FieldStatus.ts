@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -9,9 +9,7 @@
  */
 import {
   aria, arrays, ContextMenuPopup, EventHandler, FieldStatusEventMap, FieldStatusExecKeyStroke, FieldStatusModel, FormField, FormFieldStatusPosition, HierarchyChangeEvent, HtmlComponent, KeyStrokeContext, Menu, PropertyChangeEvent, scout,
-  Status, StatusOrModel,
-  strings, Tooltip,
-  Widget
+  Status, StatusOrModel, strings, Tooltip, Widget
 } from '../../index';
 
 export class FieldStatus extends Widget implements FieldStatusModel {
@@ -40,6 +38,7 @@ export class FieldStatus extends Widget implements FieldStatusModel {
     this.autoRemove = true;
     this.position = FormField.StatusPosition.DEFAULT;
     this.inheritAccessibility = false;
+    this.menus = [];
 
     this._parents = [];
     this._parentPropertyChangeListener = this._onParentPropertyChange.bind(this);
@@ -132,7 +131,7 @@ export class FieldStatus extends Widget implements FieldStatusModel {
     if (!this.updating) {
       this._updatePopup();
     }
-    let hasMenus = !arrays.empty(this.menus);
+    let hasMenus = this.menus.length > 0;
     aria.label(this.$container, hasMenus ? this.session.text('ui.MoreActions') : null);
     aria.role(this.$container, hasMenus ? 'button' : null);
     aria.hasPopup(this.$container, hasMenus ? 'menu' : null);
@@ -164,7 +163,7 @@ export class FieldStatus extends Widget implements FieldStatusModel {
     if (!this._requiresTooltip()) {
       this.hideTooltip();
     }
-    if (arrays.empty(this.menus)) {
+    if (!this.menus.length) {
       this.hideContextMenu();
     }
     if (showStatus === true) {
@@ -178,7 +177,7 @@ export class FieldStatus extends Widget implements FieldStatusModel {
     if (!this.status || !this.rendered) {
       return false;
     }
-    if (arrays.empty(this.menus) && !strings.hasText(this.status.message)) {
+    if (!this.menus.length && !strings.hasText(this.status.message)) {
       return false;
     }
     return true;
@@ -318,9 +317,10 @@ export class FieldStatus extends Widget implements FieldStatusModel {
   doAction() {
     this.togglePopup();
     // Ensure the user can use keyboard to select the menus inside the tooltip.
-    // Ideally, this would be done by the tooltip itself, but some status tooltips will be opened during field input.
-    // In that case we do not want the tooltip to take the focus away from the input -> Only do it when the user explicitly requested the opening of the tooltip.
-    this.tooltip?.installKeyboardNavigationForMenus();
+    // Ideally, a tooltip would always be a focus context if it had menus, but some status tooltips will be opened during field input.
+    // In that case we do not want the tooltip to take the focus away from the input
+    // -> Only do it when the user explicitly requested the opening of the tooltip.
+    this.tooltip?.setWithFocusContext(this.menus.length > 0);
   }
 
   protected _updateTooltipVisibility(parent: Widget) {

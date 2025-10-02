@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {ContextMenuContainer, KeyStrokeContext, MenuExecByNumberKeyStroke, MenuNavigationDownKeyStroke, MenuNavigationExecKeyStroke, MenuNavigationUpKeyStroke, SubCloseKeyStroke} from '../index';
+import {ContextMenuContainer, KeyStrokeContext, MenuExecByNumberKeyStroke, MenuNavigationDownKeyStroke, MenuNavigationExecKeyStroke, MenuNavigationKeyStroke, MenuNavigationUpKeyStroke, SubCloseKeyStroke} from '../index';
 
 export const menuNavigationKeyStrokes = {
   registerKeyStrokes(keyStrokeContext: KeyStrokeContext, popup: ContextMenuContainer, menuItemClass: string) {
@@ -18,6 +18,10 @@ export const menuNavigationKeyStrokes = {
       new MenuExecByNumberKeyStroke(popup, menuItemClass),
       new SubCloseKeyStroke(popup, menuItemClass)
     ]);
+  },
+
+  unregisterKeyStrokes(keyStrokeContext: KeyStrokeContext) {
+    keyStrokeContext.unregisterKeyStrokes(keyStrokeContext.keyStrokes.filter(keyStroke => keyStroke instanceof MenuNavigationKeyStroke));
   },
 
   /** @internal */
