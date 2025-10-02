@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -62,6 +62,7 @@
         flex-grow: 1;
         flex-basis: 0;
         justify-content: center;
+        --first-focus-padding-x: @tab-item-padding-x;
       }
 
       & > .tab-item.first {
@@ -92,6 +93,7 @@
   padding: 0 @tab-item-padding-x;
   cursor: pointer;
   height: 100%; // Ensures the after element is always on the tab box header line (may not be the case on certain zoom levels or if the area is very large, see above)
+  --first-focus-padding-x: 10px;
 
   &::after {
     content: '';
@@ -133,7 +135,12 @@
     outline: none;
 
     &.keyboard-navigation {
-      color: @tab-item-focus-color;
+      #scout.focus-inset-box-shadow();
+
+      &.first {
+        padding-left: var(--first-focus-padding-x);
+        padding-right: var(--first-focus-padding-x);
+      }
     }
   }
 
