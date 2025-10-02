@@ -2195,13 +2195,13 @@ export class Widget extends PropertyEventEmitter implements WidgetModel, ObjectW
   /**
    * Returns the {@link HTMLElement} to be used when {@link focus} is called.
    *
-   * In case another element than {@link $container} should be used, {@link get$Focusable} can be overridden.
+   * In case another element than {@link $container} should be used, this method or {@link get$Focusable} can be overridden.
    */
   getFocusableElement(): HTMLElement | JQuery {
     if (!this.rendered) {
       return null;
     }
-    return this.get$Focusable();
+    return this.get$Focusable()?.[0];
   }
 
   get$Focusable(): JQuery {
