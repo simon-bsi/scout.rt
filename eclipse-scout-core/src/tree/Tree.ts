@@ -97,6 +97,7 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
   protected _$expandAnimationWrappers: JQuery[];
   protected _filterMenusHandler: MenuFilter;
   protected _popupOpenHandler: EventHandler<DesktopPopupOpenEvent>;
+  protected _focusHandler: (event: JQuery.FocusEvent) => void;
   /** contains all parents of a selected node, the selected node and the first level children */
   protected _inSelectionPathList: Record<string, boolean>;
   protected _scrollDirections: ScrollDirection;
@@ -464,7 +465,7 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
     super._renderProperties();
     this._renderTextFilterEnabled();
     this._renderMultiCheck();
-    this._renderFocusedNode();
+    this._renderNodesFocusable();
   }
 
   protected override _postRender() {
@@ -543,6 +544,12 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
 
   override get$Focusable(): JQuery {
     return this.$data;
+  }
+
+  protected _onFocus(event: JQuery.FocusEvent) {
+    if (this.nodesFocusable && !this.focusedNode) {
+      this.setFocusedNode(this.visibleNodesFlat[0]);
+    }
   }
 
   /** @internal */
@@ -3516,6 +3523,13 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
 
   protected _renderNodesFocusable() {
     this._renderFocusedNode();
+    if (this.nodesFocusable && !this._focusHandler) {
+      this._focusHandler = this._onFocus.bind(this);
+      this.get$Focusable().on('focus', this._focusHandler);
+    } else if (this._focusHandler) {
+      this.get$Focusable().off('focus', this._focusHandler);
+      this._focusHandler = null;
+    }
   }
 
   setFocusedNode(node: TreeNode) {
