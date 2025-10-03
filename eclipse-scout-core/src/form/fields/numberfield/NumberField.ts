@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 import {
-  AcceptInputKeyStroke, aria, BasicField, Calculator, DecimalFormat, DecimalFormatOptions, fields, InitModelOf, InputFieldKeyStrokeContext, KeyStrokeContext, Locale, NumberFieldEventMap, NumberFieldModel, numbers, objects
+  AcceptInputKeyStroke, BasicField, Calculator, DecimalFormat, DecimalFormatOptions, fields, InitModelOf, InputFieldKeyStrokeContext, KeyStrokeContext, Locale, NumberFieldEventMap, NumberFieldModel, numbers, objects
 } from '../../../index';
 
 export class NumberField extends BasicField<number, number | string> implements NumberFieldModel {
@@ -65,7 +65,6 @@ export class NumberField extends BasicField<number, number | string> implements 
     let $field = fields.makeTextField(this.$parent);
     this.addField($field);
     this.addStatus();
-    this._addAriaFieldDetails();
   }
 
   protected override _renderGridData() {
@@ -230,9 +229,5 @@ export class NumberField extends BasicField<number, number | string> implements 
     if (!objects.isNullOrUndefined(this.maxValue) && !objects.isNullOrUndefined(this.minValue) && maxValue < this.minValue) {
       this._setMinValue(maxValue);
     }
-  }
-
-  protected _addAriaFieldDetails() {
-    aria.addDynamicDetailsAndLinkToElement(this.$field, this.session.text('ui.AriaNumberFieldDescription'));
   }
 }

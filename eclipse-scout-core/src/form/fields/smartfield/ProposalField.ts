@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2024 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {aria, LookupRow, objects, ProposalFieldEventMap, ProposalFieldModel, SmartField, SmartFieldLookupResult, strings} from '../../../index';
+import {LookupRow, objects, ProposalFieldEventMap, ProposalFieldModel, SmartField, SmartFieldLookupResult, strings} from '../../../index';
 import $ from 'jquery';
 
 export class ProposalField extends SmartField<string> implements ProposalFieldModel {
@@ -44,10 +44,6 @@ export class ProposalField extends SmartField<string> implements ProposalFieldMo
 
   override cssClassName(): string {
     return 'proposal-field';
-  }
-
-  protected override _addAriaFieldDetails() {
-    aria.addDynamicDetailsAndLinkToElement(this.$field, this.session.text('ui.AriaProposalFieldDescription'));
   }
 
   protected override _handleEnterKey(event: JQuery.KeyDownEvent) {
