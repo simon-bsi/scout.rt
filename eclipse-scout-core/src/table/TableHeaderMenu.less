@@ -266,6 +266,12 @@
   border: 1px solid @control-border-color;
   border-radius: @border-radius;
 
+  &.no-rows-selected {
+    &:has(.table-data:is(:focus, .focused)) {
+      #scout.focus-border();
+    }
+  }
+
   & > .table-data {
     margin-top: 0;
     padding: 3px;
