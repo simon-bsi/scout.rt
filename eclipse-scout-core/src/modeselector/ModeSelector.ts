@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -100,9 +100,9 @@ export class ModeSelector<TModeRef = any> extends Widget implements ModeSelector
     });
   }
 
-  override getFocusableElement(): HTMLElement | JQuery {
+  override get$Focusable(): JQuery {
     // The first mode may not be focusable because it is not selected and therefore has no tab index -> find the first focusable button
-    return this.session.focusManager.findFirstFocusableElement(this.$container);
+    return $(this.session.focusManager.findFirstFocusableElement(this.$container));
   }
 
   setModes(modes: ObjectOrChildModel<Mode<TModeRef>>[]) {

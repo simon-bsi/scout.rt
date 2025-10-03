@@ -2134,7 +2134,7 @@ export class Widget extends PropertyEventEmitter implements WidgetModel, ObjectW
   }
 
   /**
-   * Tries to set the focus on the {@link getFocusableElement} of the widget.
+   * Tries to set the focus on the {@link get$Focusable} of the widget.
    *
    * @param options.preventScroll prevents scrolling to new focused element (defaults to false)
    * @returns true if the element could be focused, false if not
@@ -2144,7 +2144,7 @@ export class Widget extends PropertyEventEmitter implements WidgetModel, ObjectW
       this.session.layoutValidator.schedulePostValidateFunction(this.focus.bind(this, options));
       return false;
     }
-    return this.session.focusManager.requestFocus(this.getFocusableElement(), null, options);
+    return this.session.focusManager.requestFocus(this.get$Focusable(), null, options);
   }
 
   /**
@@ -2164,7 +2164,7 @@ export class Widget extends PropertyEventEmitter implements WidgetModel, ObjectW
    * @returns whether the widget is the currently active element
    */
   isFocused(): boolean {
-    return this.rendered && focusUtils.isActiveElement(this.getFocusableElement());
+    return this.rendered && focusUtils.isActiveElement(this.get$Focusable());
   }
 
   /**
@@ -2175,11 +2175,10 @@ export class Widget extends PropertyEventEmitter implements WidgetModel, ObjectW
     if (!this.rendered || !this.visible) {
       return false;
     }
-    let elem = this.getFocusableElement();
-    if (!elem) {
+    let $elem = this.get$Focusable();
+    if (!$elem?.length) {
       return false;
     }
-    let $elem = $.ensure(elem);
     if (!$elem.is(':focusable')) {
       return false;
     }
@@ -2193,19 +2192,19 @@ export class Widget extends PropertyEventEmitter implements WidgetModel, ObjectW
   }
 
   /**
-   * Returns the {@link HTMLElement} to be used when {@link focus} is called.
-   *
-   * In case another element than {@link $container} should be used, this method or {@link get$Focusable} can be overridden.
+   * @deprecated use {@link get$Focusable} instead
    */
   getFocusableElement(): HTMLElement | JQuery {
-    if (!this.rendered) {
-      return null;
-    }
-    return this.get$Focusable()?.[0];
+    return this.$container;
   }
 
+  /**
+   * Returns the {@link JQuery} element to be used when {@link focus} is called.
+   *
+   * In case another element than {@link $container} should be used, this method can be overridden.
+   */
   get$Focusable(): JQuery {
-    return this.$container;
+    return $.ensure(this.getFocusableElement());
   }
 
   protected _installScrollbars(options?: ScrollbarInstallOptions) {
