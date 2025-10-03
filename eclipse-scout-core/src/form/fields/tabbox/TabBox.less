@@ -44,6 +44,10 @@
       border-radius: @tab-area-selection-marker-height / 2;
     }
 
+    &:has(.tab-item:focus.keyboard-navigation) > .selection-marker {
+      #scout.focus-box-shadow();
+    }
+
     & > .tab-item > .title > .sub-label {
       display: none;
     }
@@ -62,7 +66,6 @@
         flex-grow: 1;
         flex-basis: 0;
         justify-content: center;
-        --first-focus-padding-x: @tab-item-padding-x;
       }
 
       & > .tab-item.first {
@@ -93,7 +96,6 @@
   padding: 0 @tab-item-padding-x;
   cursor: pointer;
   height: 100%; // Ensures the after element is always on the tab box header line (may not be the case on certain zoom levels or if the area is very large, see above)
-  --first-focus-padding-x: 10px;
 
   &::after {
     content: '';
@@ -133,15 +135,6 @@
 
   &:focus {
     outline: none;
-
-    &.keyboard-navigation {
-      #scout.focus-inset-box-shadow();
-
-      &.first {
-        padding-left: var(--first-focus-padding-x);
-        padding-right: var(--first-focus-padding-x);
-      }
-    }
   }
 
   & > .title {
