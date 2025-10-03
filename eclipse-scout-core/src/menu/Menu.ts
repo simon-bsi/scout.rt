@@ -9,8 +9,7 @@
  */
 import {
   Action, ActionExecKeyStroke, ActionKeyStroke, aria, arrays, CloneOptions, ContextMenuPopup, EnumObject, HtmlComponent, icons, InitModelOf, MenuBarPopup, MenuDestinations, MenuEventMap, MenuExecKeyStroke, MenuKeyStroke, MenuModel,
-  MenuOrder,
-  ObjectOrChildModel, Popup, PopupAlignment, PropertyChangeEvent, scout, strings, tooltips, TreeVisitor, TreeVisitResult
+  MenuOrder, ObjectOrChildModel, Popup, PopupAlignment, PropertyChangeEvent, scout, strings, tooltips, TreeVisitor, TreeVisitResult
 } from '../index';
 
 export type SubMenuVisibility = EnumObject<typeof Menu.SubMenuVisibility>;
@@ -170,7 +169,7 @@ export class Menu extends Action implements MenuModel {
       aria.role(this.$container, 'separator');
       return;
     }
-    let hasPopup = this._doActionTogglesSubMenu() || this._doActionTogglesPopup();
+    let hasPopup = this.togglesPopupOrSubMenu();
     aria.role(this.$container, this.isToggleAction() && !hasPopup ? 'menuitemcheckbox' : 'menuitem');
   }
 
@@ -184,7 +183,7 @@ export class Menu extends Action implements MenuModel {
         this.parent.updateAriaActiveDescendant();
       }
     }
-    let hasPopup = this._doActionTogglesSubMenu() || this._doActionTogglesPopup();
+    let hasPopup = this.togglesPopupOrSubMenu();
     if (this.selected) {
       if (this._doActionTogglesSubMenu()) {
         this._renderSubMenuItems(this, this.childActions);
@@ -263,6 +262,13 @@ export class Menu extends Action implements MenuModel {
       return this.parent._togglesSubMenu();
     }
     return false;
+  }
+
+  /**
+   * @returns true if {@link doAction} toggles a popup or a sub menu.
+   */
+  togglesPopupOrSubMenu() {
+    return this._doActionTogglesSubMenu() || this._doActionTogglesPopup();
   }
 
   protected _onMouseEvent(event: JQuery.MouseEventBase) {
@@ -521,11 +527,6 @@ export class Menu extends Action implements MenuModel {
       // already open
       return false;
     }
-
-    // Recheck if opening is still possible (maybe destroying the popup changed that, e.g. form of form menu was set to null)
-    if (!this._doActionTogglesPopup()) {
-      return false;
-    }
     return true;
   }
 
@@ -659,7 +660,7 @@ export class Menu extends Action implements MenuModel {
       return;
     }
     super.setSelected(selected);
-    if (!this._doActionTogglesSubMenu() && !this._doActionTogglesPopup()) {
+    if (!this.togglesPopupOrSubMenu()) {
       return;
     }
     // If menu toggles a popup and is in an ellipsis menu which is not selected it needs a special treatment

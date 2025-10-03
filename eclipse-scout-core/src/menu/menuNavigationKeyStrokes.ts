@@ -25,12 +25,12 @@ export const menuNavigationKeyStrokes = {
   },
 
   /** @internal */
-  _findMenuItems(popup: ContextMenuContainer, menuItemClass: string): { $all: JQuery; $allVisible: JQuery; $selected: JQuery } {
+  _findMenuItems(popup: ContextMenuContainer, menuItemClass: string): { $all: JQuery; $allVisible: JQuery; $focused: JQuery } {
     let $body = popup.$body || popup.$container;
     return {
       $all: $body.find('.' + menuItemClass),
-      $allVisible: $body.find('.' + menuItemClass + ':visible'),
-      $selected: $body.find('.' + menuItemClass + '.selected')
+      $allVisible: $body.find('.' + menuItemClass + ':visible:not(.disabled)'),
+      $focused: $body.find('.' + menuItemClass + '.focused')
     };
   }
 };

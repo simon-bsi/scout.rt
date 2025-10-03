@@ -28,15 +28,15 @@ export class MenuNavigationKeyStroke extends KeyStroke {
     return accepted;
   }
 
-  protected _changeSelection($oldItem: JQuery, $newItem: JQuery) {
+  protected _changeFocus($oldItem: JQuery, $newItem: JQuery) {
     if ($newItem.length === 0) {
-      // do not change selection
+      // do not change focus
       return;
     }
-    $newItem.setSelected(true).focus();
+    $newItem.addClass('focused');
     menus.updateAriaActiveDescendant(this.field.$container, this.field.$body || this.field.$container, this._menuItemClass, $newItem);
     if ($oldItem.length > 0) {
-      $oldItem.setSelected(false);
+      $oldItem.removeClass('focused');
     }
   }
 }
