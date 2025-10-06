@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -8,7 +8,10 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import {aria, arrays, BreadcrumbBarEventMap, BreadcrumbBarLayout, BreadcrumbBarModel, BreadcrumbItem, HtmlComponent, InitModelOf, Menu, ObjectOrChildModel, scout, Widget} from '../index';
+import {
+  aria, BreadcrumbBarEventMap, BreadcrumbBarLayout, BreadcrumbBarModel, BreadcrumbItem, FocusLeftTabTargetKeyStroke, FocusRightTabTargetKeyStroke, HtmlComponent, InitModelOf, KeyStrokeContext, ObjectOrChildModel, scout, TabbableCoordinator,
+  Widget
+} from '../index';
 
 export class BreadcrumbBar extends Widget implements BreadcrumbBarModel {
   declare model: BreadcrumbBarModel;
@@ -17,6 +20,7 @@ export class BreadcrumbBar extends Widget implements BreadcrumbBarModel {
 
   breadcrumbItems: BreadcrumbItem[] = [];
   ellipsisBreadcrumbItem: BreadcrumbItem;
+  tabbableCoordinator: TabbableCoordinator;
 
   constructor() {
     super();
@@ -26,7 +30,18 @@ export class BreadcrumbBar extends Widget implements BreadcrumbBarModel {
 
   protected override _init(model: InitModelOf<this>) {
     super._init(model);
+    this.tabbableCoordinator = scout.create(TabbableCoordinator, {parent: this});
     this._setBreadcrumbItems(this.breadcrumbItems);
+  }
+
+  protected override _createKeyStrokeContext(): KeyStrokeContext {
+    return new KeyStrokeContext();
+  }
+
+  protected override _initKeyStrokeContext() {
+    super._initKeyStrokeContext();
+
+    this.tabbableCoordinator.registerKeyStrokes(this);
   }
 
   protected override _render() {
@@ -40,12 +55,13 @@ export class BreadcrumbBar extends Widget implements BreadcrumbBarModel {
     this._renderBreadcrumbItems();
   }
 
-  setBreadcrumbItems(breadcrumbItems: ObjectOrChildModel<BreadcrumbItem> | ObjectOrChildModel<BreadcrumbItem>[]) {
+  setBreadcrumbItems(breadcrumbItems: ObjectOrChildModel<BreadcrumbItem>[]) {
     this.setProperty('breadcrumbItems', breadcrumbItems);
   }
 
-  protected _setBreadcrumbItems(breadcrumbItems: BreadcrumbItem | BreadcrumbItem[]) {
-    this._setProperty('breadcrumbItems', arrays.ensure(breadcrumbItems));
+  protected _setBreadcrumbItems(breadcrumbItems: BreadcrumbItem[]) {
+    this._setProperty('breadcrumbItems', breadcrumbItems);
+    this.tabbableCoordinator.setItems(breadcrumbItems);
   }
 
   protected _renderBreadcrumbItems() {

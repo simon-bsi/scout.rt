@@ -12,4 +12,10 @@ import {ObjectOrModel, SimpleTab, SimpleTabAreaDisplayStyle, SimpleTabView, Widg
 export interface SimpleTabAreaModel<TView extends SimpleTabView = SimpleTabView> extends WidgetModel {
   displayStyle?: SimpleTabAreaDisplayStyle;
   tabs?: ObjectOrModel<SimpleTab<TView>>[];
+  /**
+   * Specifies whether to select the tab when it is focused (e.g. by left/right arrow keys).
+   *
+   * Default is true.
+   */
+  selectOnFocus?: boolean;
 }

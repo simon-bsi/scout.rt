@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {aria, HtmlComponent, InitModelOf, Menu, MenuBoxEventMap, MenuBoxLayout, MenuBoxModel, ObjectOrChildModel, Widget} from '../../index';
+import {aria, EllipsisMenu, HtmlComponent, InitModelOf, KeyStrokeContext, Menu, MenuBoxEventMap, MenuBoxLayout, MenuBoxModel, ObjectOrChildModel, scout, TabbableCoordinator, Widget} from '../../index';
 
 export class MenuBox extends Widget implements MenuBoxModel {
   declare model: MenuBoxModel;
@@ -17,6 +17,7 @@ export class MenuBox extends Widget implements MenuBoxModel {
   compact: boolean;
   menus: Menu[];
   uiMenuCssClass: string;
+  tabbableCoordinator: TabbableCoordinator;
 
   protected _compactOrig: boolean;
 
@@ -30,15 +31,18 @@ export class MenuBox extends Widget implements MenuBoxModel {
 
   protected override _init(options: InitModelOf<this>) {
     super._init(options);
-    this._initMenus(this.menus);
+    this.tabbableCoordinator = scout.create(TabbableCoordinator, {parent: this});
+    this._setMenus(this.menus);
   }
 
-  protected _initMenus(menus: Menu[]) {
-    menus.forEach(this._initMenu.bind(this));
+  protected override _createKeyStrokeContext(): KeyStrokeContext {
+    return new KeyStrokeContext();
   }
 
-  protected _initMenu(menu: Menu) {
-    menu.uiCssClass = this.uiMenuCssClass;
+  protected override _initKeyStrokeContext() {
+    super._initKeyStrokeContext();
+
+    this.tabbableCoordinator.registerKeyStrokes(this);
   }
 
   protected override _render() {
@@ -59,8 +63,21 @@ export class MenuBox extends Widget implements MenuBoxModel {
     this.setProperty('menus', menus);
   }
 
+  protected _setMenus(menus: Menu[]) {
+    menus.forEach(menu => this._initMenu(menu));
+    this._setProperty('menus', menus);
+    this._updateTabbableItems();
+  }
+
+  protected _initMenu(menu: Menu) {
+    menu.uiCssClass = this.uiMenuCssClass;
+  }
+
   protected _renderMenus() {
-    this.menus.forEach(menu => menu.render());
+    this.menus.forEach(menu => {
+      menu.render();
+      menu.$container.addClass('prevent-initial-focus'); // Cannot be added to uiCssClass otherwise it would be put on the popup as well.
+    });
     this.invalidateLayoutTree();
   }
 
@@ -99,5 +116,16 @@ export class MenuBox extends Widget implements MenuBoxModel {
     }
     this.setCompact(this._compactOrig);
     this._compactOrig = undefined;
+  }
+
+  /**
+   * @internal
+   */
+  _updateTabbableItems(ellipsisMenu?: EllipsisMenu) {
+    let items = [...this.menus];
+    if (ellipsisMenu) {
+      items.push(ellipsisMenu);
+    }
+    this.tabbableCoordinator.setItems(items);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -40,7 +40,7 @@ export class ViewButton extends Action implements ViewButtonModel {
   renderAsTab($parent: JQuery) {
     let $wrapper = $parent.appendDiv('view-tab-wrapper');
     this.render($wrapper);
-    this.$container.addClass('view-tab view-button-tab');
+    this.$container.addClass('view-tab view-button-tab prevent-initial-focus');
   }
 
   protected override _render() {
@@ -97,6 +97,10 @@ export class ViewButton extends Action implements ViewButtonModel {
 
   setSelectedAsMenu(selectedAsMenu: boolean) {
     this.selectedAsMenu = selectedAsMenu;
+  }
+
+  override isTabTarget(): boolean {
+    return super.isTabTarget();
   }
 
   protected _onDesktopInBackgroundChange(event: PropertyChangeEvent<boolean, Desktop>) {

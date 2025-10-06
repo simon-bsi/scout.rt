@@ -10,7 +10,8 @@
 import {
   AbstractTreeNavigationKeyStroke, Action, aria, arrays, ContextMenuPopup, DesktopPopupOpenEvent, Device, DoubleClickSupport, dragAndDrop, DragAndDropHandler, DropType, EnumObject, EventHandler, Filter, Filterable, FilterOrFunction,
   FilterResult, FilterSupport, FullModelOf, graphics, HtmlComponent, InitModelOf, keys, KeyStrokeContext, keyStrokeModifier, LazyNodeFilter, Menu, MenuBar, MenuDestinations, MenuFilter, MenuItemsOrder, menus as menuUtil, ObjectOrChildModel,
-  ObjectOrModel, objects, Range, Rectangle, scout, scrollbars, ScrollDirection, ScrollToOptions, strings, tooltips, TreeBreadcrumbFilter, TreeCheckKeyStroke, TreeCheckNodesResult, TreeCollapseAllKeyStroke, TreeCollapseOrDrillUpKeyStroke,
+  ObjectOrModel, objects, Range, Rectangle, scout, scrollbars, ScrollDirection, ScrollToAlignment, ScrollToOptions, strings, tooltips, TreeBreadcrumbFilter, TreeCheckKeyStroke, TreeCheckNodesResult, TreeCollapseAllKeyStroke,
+  TreeCollapseOrDrillUpKeyStroke,
   TreeEventMap, TreeExpandOrDrillDownKeyStroke, TreeLayout, TreeModel, TreeNavigationDownKeyStroke, TreeNavigationEndKeyStroke, TreeNavigationHomeKeyStroke, TreeNavigationUpKeyStroke, TreeNode, TreeNodeModel, TreeSelectKeyStroke,
   UpdateFilteredElementsOptions, Widget
 } from '../index';
@@ -2021,7 +2022,7 @@ export class Tree extends Widget implements TreeModel, Filterable<TreeNode> {
     this.showNode(node, animatedRendering, insertIndex);
   }
 
-  scrollTo(node: TreeNode, options?: ScrollToOptions | string) {
+  scrollTo(node: TreeNode, options?: ScrollToOptions | ScrollToAlignment) {
     if (this.viewRangeRendered.size() === 0) {
       // Cannot scroll to a node if no node is rendered
       return;
