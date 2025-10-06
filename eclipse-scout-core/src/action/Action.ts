@@ -33,6 +33,7 @@ export class Action extends Widget implements ActionModel {
   selected: boolean;
   preventDoubleClick: boolean;
   tabbable: boolean;
+  focusable: boolean;
   actionKeyStroke: ActionKeyStroke;
   text: string;
   textPosition: ActionTextPosition;
@@ -65,6 +66,7 @@ export class Action extends Widget implements ActionModel {
     this.selected = false;
     this.preventDoubleClick = false;
     this.tabbable = false;
+    this.focusable = false;
     this.text = null;
     this.textPosition = Action.TextPosition.DEFAULT;
     this.htmlEnabled = false;
@@ -162,6 +164,7 @@ export class Action extends Widget implements ActionModel {
     this._renderKeyStroke();
     this._renderSelected();
     this._renderTabbable();
+    this._renderFocusable();
     this._renderCompact();
     this._renderActionStyle();
     this._renderOverflown();
@@ -327,6 +330,14 @@ export class Action extends Widget implements ActionModel {
 
   protected _renderTabbable() {
     this.$container.setTabbable(this.tabbable && this.enabledComputed && !Device.get().supportsOnlyTouch());
+  }
+
+  setFocusable(focusable: boolean) {
+    this.setProperty('focusable', focusable);
+  }
+
+  protected _renderFocusable() {
+    this.$container.toggleClass('unfocusable', !this.focusable);
   }
 
   /** @see ActionModel.compact */

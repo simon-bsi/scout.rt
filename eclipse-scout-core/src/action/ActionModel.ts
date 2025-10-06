@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -79,6 +79,15 @@ export interface ActionModel extends WidgetModel {
    * Default is false.
    */
   tabbable?: boolean;
+  /**
+   * Defines whether the action should get the focus when clicked.
+   *
+   * If set to false, it won't get the focus.
+   * However, if {@link tabbable} is true, it may still get the focus by keyboard or if {@link focus} is called programmatically.
+   *
+   * Default is false.
+   */
+  focusable?: boolean;
   /**
    * Configures the text of the action.
    */

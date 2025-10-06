@@ -19,6 +19,7 @@ export class FormFieldMenu extends Menu implements FormFieldMenuModel {
 
   constructor() {
     super();
+    this.focusable = true;
     this._addWidgetProperties('field');
   }
 
