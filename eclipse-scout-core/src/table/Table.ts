@@ -12,8 +12,8 @@ import {
   ContextMenuPopup, dataObjects, DefaultTableAccessibilityRenderer, Desktop, DesktopPopupOpenEvent, Device, DisplayViewId, DoubleClickSupport, dragAndDrop, DragAndDropHandler, DropType, EnumObject, ErrorHandler, EventHandler, Filter,
   Filterable, FilterOrFunction, FilterResult, FilterSupport, FullModelOf, graphics, HierarchicalTableAccessibilityRenderer, HtmlComponent, IconColumn, InitModelOf, Insets, IUserFilterStateDo, keys, KeyStrokeContext,
   LimitedResultTableStatus, LoadingSupport, Menu, MenuBar, MenuDestinations, MenuItemsOrder, menus as menuUtil, menus, NumberColumn, NumberColumnAggregationFunction, NumberColumnBackgroundEffect, ObjectOrChildModel, ObjectOrModel, objects,
-  Predicate, PropertyChangeEvent, Range, scout, scrollbars, ScrollToOptions, Status, StatusOrModel, strings, styles, TableClientUiPreferenceProfileDo, TableCompactHandler, TableControl, TableCopyKeyStroke, TableCustomizer, TableEventMap,
-  TableFooter, TableHeader, TableLayout, TableModel, TableNavigationCollapseKeyStroke, TableNavigationDownKeyStroke, TableNavigationEndKeyStroke, TableNavigationExpandKeyStroke, TableNavigationHomeKeyStroke,
+  Predicate, PropertyChangeEvent, Range, scout, scrollbars, ScrollToOptions, Status, StatusOrModel, strings, styles, TabbableCoordinator, TableClientUiPreferenceProfileDo, TableCompactHandler, TableControl, TableCopyKeyStroke,
+  TableCustomizer, TableEventMap, TableFooter, TableHeader, TableLayout, TableModel, TableNavigationCollapseKeyStroke, TableNavigationDownKeyStroke, TableNavigationEndKeyStroke, TableNavigationExpandKeyStroke, TableNavigationHomeKeyStroke,
   TableNavigationPageDownKeyStroke, TableNavigationPageUpKeyStroke, TableNavigationUpKeyStroke, TableOrganizer, TableRefreshKeyStroke, TableRow, TableRowModel, TableSelectAllKeyStroke, TableSelectionHandler, TableStartCellEditKeyStroke,
   TableTextUserFilter, TableTileGridMediator, TableToggleRowKeyStroke, TableTooltip, TableUiPreferences, tableUiPreferences, TableUpdateBuffer, TableUserFilter, TableUserFilterModel, Tile, TileTableHeaderBox, tooltips, TooltipSupport,
   UiPreferences, UpdateFilteredElementsOptions, UserFilterStateMappers, ValueField, Widget
@@ -69,6 +69,7 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
   selectedRows: TableRow[];
   sortEnabled: boolean;
   tableControls: TableControl[];
+  tabbableControlsCoordinator: TabbableCoordinator;
   tableStatusVisible: boolean;
   tableTileGridMediator: TableTileGridMediator;
   tileMode: boolean;
@@ -206,6 +207,7 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
     this.selectedRows = [];
     this.sortEnabled = true;
     this.tableControls = [];
+    this.tabbableControlsCoordinator = scout.create(TabbableCoordinator);
     this.tableStatusVisible = false;
     this.tableTileGridMediator = null;
     this.tileMode = false;
@@ -710,24 +712,20 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
   }
 
   protected _renderTableControls() {
-    if (this.footer) {
-      this.footer._renderControls();
-    }
+    this.footer?._renderControls();
   }
 
   protected _setTableControls(controls: TableControl[]) {
-    let i;
-    for (i = 0; i < this.tableControls.length; i++) {
-      this.keyStrokeContext.unregisterKeyStroke(this.tableControls[i]);
+    for (const control of this.tableControls) {
+      this.keyStrokeContext.unregisterKeyStroke(control);
     }
     this._setProperty('tableControls', controls);
-    for (i = 0; i < this.tableControls.length; i++) {
-      this.keyStrokeContext.registerKeyStroke(this.tableControls[i]);
+    for (const control of this.tableControls) {
+      this.keyStrokeContext.registerKeyStroke(control);
+      control.tableFooter = this.footer;
     }
     this._updateFooterVisibility();
-    this.tableControls.forEach(control => {
-      control.tableFooter = this.footer;
-    });
+    this.tabbableControlsCoordinator.setItems(controls);
   }
 
   /**

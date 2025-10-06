@@ -8,8 +8,9 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 import {
-  aria, arrays, Column, ColumnModel, ColumnUserFilter, Device, EventHandler, graphics, GroupBoxMenuItemsOrder, InitModelOf, inspector, MenuBar, MenuDestinations, ObjectIdProvider, objects, PropertyChangeEvent, Rectangle, scout, scrollbars,
-  SomeRequired, strings, styles, Table, TableColumnMovedEvent, TableColumnResizedEvent, TableFilterAddedEvent, TableFilterRemovedEvent, TableHeaderEventMap, TableHeaderMenu, TableHeaderModel, tooltips, Widget
+  aria, arrays, Column, ColumnModel, ColumnUserFilter, Device, EventHandler, FocusLeftTabTargetKeyStroke, FocusRightTabTargetKeyStroke, graphics, GroupBoxMenuItemsOrder, InitModelOf, inspector, keys, KeyStrokeContext, MenuBar,
+  MenuDestinations, ObjectIdProvider, objects, PropertyChangeEvent, Rectangle, scout, scrollbars, SomeRequired, strings, styles, TabbableCoordinator, TabbableItem, Table, TableColumnMovedEvent, TableColumnResizedEvent,
+  TableFilterAddedEvent, TableFilterRemovedEvent, TableHeaderEventMap, TableHeaderMenu, TableHeaderModel, tooltips, Widget
 } from '../index';
 import $ from 'jquery';
 
@@ -26,6 +27,7 @@ export class TableHeader extends Widget implements TableHeaderModel {
   menuBar: MenuBar;
   tableHeaderMenu: TableHeaderMenu;
   headerLabelId: string;
+  tabbableCoordinator: TabbableCoordinator;
   $menuBarContainer: JQuery;
   $filler: JQuery;
 
@@ -50,6 +52,7 @@ export class TableHeader extends Widget implements TableHeaderModel {
     this._tableColumnResizedHandler = this._onTableColumnResized.bind(this);
     this._tableColumnMovedHandler = this._onTableColumnMoved.bind(this);
     this._renderedColumns = [];
+    this.tabbableCoordinator = scout.create(TabbableCoordinator);
   }
 
   protected override _init(options: InitModelOf<this>) {
@@ -63,6 +66,16 @@ export class TableHeader extends Widget implements TableHeaderModel {
     });
     this.menuBar.on('propertyChange', this._onMenuBarPropertyChange.bind(this));
     this.updateMenuBar();
+  }
+
+  protected override _createKeyStrokeContext(): KeyStrokeContext {
+    return new KeyStrokeContext();
+  }
+
+  protected override _initKeyStrokeContext() {
+    super._initKeyStrokeContext();
+
+    this.tabbableCoordinator.registerKeyStrokes(this);
   }
 
   protected override _render() {
@@ -116,6 +129,12 @@ export class TableHeader extends Widget implements TableHeaderModel {
       this.$filler.css('visibility', 'visible').html('&nbsp;').addClass('empty');
     }
     this._reconcileScrollPos();
+    this._updateTabbableItems();
+  }
+
+  protected _updateTabbableItems() {
+    let headerItems = this.findHeaderItems().map((i, item) => new TabbableItem($(item))).get();
+    this.tabbableCoordinator.setItems([...headerItems, ...this.menuBar.menuItems]);
   }
 
   protected _renderColumn(column: Column<any>, index: number) {
@@ -141,6 +160,7 @@ export class TableHeader extends Widget implements TableHeaderModel {
     if (this.enabled) { // enabledComputed not used on purpose
       $header
         .on('click', this._onHeaderItemClick.bind(this))
+        .on('keydown', this._onHeaderItemKeyDown.bind(this))
         .on('mousedown', this._onHeaderItemMouseDown.bind(this));
     }
 
@@ -179,6 +199,7 @@ export class TableHeader extends Widget implements TableHeaderModel {
 
   protected _removeColumns() {
     this._renderedColumns.slice().forEach(this._removeColumn, this);
+    this._updateTabbableItems();
   }
 
   protected _removeColumn(column: Column<any>) {
@@ -542,11 +563,14 @@ export class TableHeader extends Widget implements TableHeaderModel {
     let menuItems = this.table._filterMenus(this.table.menus, MenuDestinations.HEADER);
     this.menuBar.setHiddenByUi(!this.enabled); // enabledComputed not used on purpose
     this.menuBar.setMenuItems(menuItems);
+    if (this.rendered) {
+      this._updateTabbableItems();
+    }
   }
 
   protected _onTableColumnResized(event: TableColumnResizedEvent) {
-    let column = event.column,
-      lastColumn = this._lastVisibleColumn();
+    let column = event.column;
+    let lastColumn = this._lastVisibleColumn();
     this.resizeHeaderItem(column);
     if (lastColumn !== column) {
       this.resizeHeaderItem(lastColumn);
@@ -601,6 +625,7 @@ export class TableHeader extends Widget implements TableHeaderModel {
     if (!this.dragging) {
       this._arrangeHeaderItems($([$movedHeader[0], $targetHeader[0]]));
     }
+    this._updateTabbableItems();
   }
 
   protected _visibleColumns(): Column<any>[] {
@@ -632,6 +657,7 @@ export class TableHeader extends Widget implements TableHeaderModel {
     this.$container.append(this.$filler);
 
     this._arrangeHeaderItems($headers);
+    this._updateTabbableItems();
   }
 
   /**
@@ -641,22 +667,30 @@ export class TableHeader extends Widget implements TableHeaderModel {
     return !!(column.headerMenuEnabled && this.headerMenusEnabled);
   }
 
-  protected _onHeaderItemClick(event: JQuery.ClickEvent): boolean {
-    let $headerItem = $(event.currentTarget),
-      column = $headerItem.data('column') as Column<any>;
+  protected _onHeaderItemClick(event: JQuery.ClickEvent) {
+    this.doHeaderItemAction($(event.currentTarget), event.ctrlKey || event.shiftKey, event.shiftKey);
+  }
+
+  protected _onHeaderItemKeyDown(event: JQuery.KeyDownEvent) {
+    if (scout.isOneOf(event.which, keys.ENTER, keys.SPACE)) {
+      this.doHeaderItemAction($(event.currentTarget));
+      event.stopPropagation();
+    }
+  }
+
+  doHeaderItemAction($headerItem: JQuery, toggleSort?: boolean, multiSort?: boolean) {
+    let column = $headerItem.data('column') as Column<any>;
 
     if (this.dragging || this.columnMoved) {
       this.dragging = false;
       this.columnMoved = false;
-    } else if (this.table.sortEnabled && (event.shiftKey || event.ctrlKey || !this._isHeaderMenuEnabled(column))) {
-      this.table.sort(column, $headerItem.hasClass('sort-asc') ? 'desc' : 'asc', event.shiftKey);
-    } else if (this.tableHeaderMenu && this.tableHeaderMenu.isOpenFor($headerItem)) {
+    } else if (this.table.sortEnabled && (toggleSort || !this._isHeaderMenuEnabled(column))) {
+      this.table.sort(column, $headerItem.hasClass('sort-asc') ? 'desc' : 'asc', multiSort);
+    } else if (this.tableHeaderMenu?.isOpenFor($headerItem)) {
       this.closeHeaderMenu();
     } else if (this._isHeaderMenuEnabled(column)) {
       this.openHeaderMenu(column);
     }
-
-    return false;
   }
 
   protected _onHeaderItemMouseDown(event: JQuery.MouseDownEvent) {

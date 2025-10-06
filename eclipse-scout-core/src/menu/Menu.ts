@@ -389,8 +389,8 @@ export class Menu extends Action implements MenuModel {
     this.invalidateLayoutTree();
   }
 
-  isTabTarget(): boolean {
-    return this.enabledComputed && this.visible && !this.overflown && (this.isButton() || !this.separator)
+  override isTabTarget(): boolean {
+    return super.isTabTarget() && (this.isButton() || !this.separator) // TODO CGU why check for this.isButton? remove it
       && (!this.parentMenu || this.parentMenu.visible && !this.parentMenu.overflown); // Necessary for ComboMenu -> must return false if ComboMenu (parentMenu) is not shown
   }
 
@@ -566,10 +566,6 @@ export class Menu extends Action implements MenuModel {
 
   override isToggleAction(): boolean {
     return this.childActions.length > 0 || this.toggleAction;
-  }
-
-  isButton(): boolean {
-    return Action.ActionStyle.BUTTON === this.actionStyle;
   }
 
   insertChildAction(actionsToInsert: ObjectOrChildModel<Menu>) {
