@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {Desktop, Event, EventHandler, HtmlComponent, InitModelOf, ObjectOrChildModel, OutlineViewButton, PropertyChangeEvent, scout, ViewButton, ViewButtonBoxEventMap, ViewButtonBoxModel, ViewMenuTab, Widget, widgets} from '../../index';
+import {
+  Desktop, Event, EventHandler, FocusLeftTabTargetKeyStroke, FocusRightTabTargetKeyStroke, HtmlComponent, InitModelOf, KeyStrokeContext, ObjectOrChildModel, OutlineViewButton, PropertyChangeEvent, scout, TabbableCoordinator, ViewButton,
+  ViewButtonBoxEventMap, ViewButtonBoxModel, ViewMenuTab, Widget, widgets
+} from '../../index';
 
 export class ViewButtonBox extends Widget implements ViewButtonBoxModel {
   declare model: ViewButtonBoxModel;
@@ -20,6 +23,7 @@ export class ViewButtonBox extends Widget implements ViewButtonBoxModel {
   menuButtons: ViewButton[];
   tabButtons: ViewButton[];
   selectedMenuButtonAlwaysVisible: boolean;
+  tabbableCoordinator: TabbableCoordinator;
   protected _desktopOutlineChangeHandler: EventHandler<Event<Desktop>>;
   protected _viewButtonPropertyChangeHandler: EventHandler<PropertyChangeEvent<any, ViewButton>>;
 
@@ -38,11 +42,22 @@ export class ViewButtonBox extends Widget implements ViewButtonBoxModel {
   protected override _init(model: InitModelOf<this>) {
     super._init(model);
     this.desktop = this.session.desktop;
+    this.tabbableCoordinator = scout.create(TabbableCoordinator);
     this.viewMenuTab = scout.create(ViewMenuTab, {
       parent: this
     });
     this._setViewButtons(this.viewButtons);
     this.desktop.on('outlineChange', this._desktopOutlineChangeHandler);
+  }
+
+  protected override _createKeyStrokeContext(): KeyStrokeContext {
+    return new KeyStrokeContext();
+  }
+
+  protected override _initKeyStrokeContext() {
+    super._initKeyStrokeContext();
+
+    this.tabbableCoordinator.registerKeyStrokes(this);
   }
 
   protected override _render() {
@@ -126,6 +141,7 @@ export class ViewButtonBox extends Widget implements ViewButtonBoxModel {
     }
     this._updateVisibility();
     this._updateSelectedMenuButtonVisibility();
+    this.tabbableCoordinator.setItems([this.viewMenuTab?.selectedButton, this.viewMenuTab?.dropdown, ...this.tabButtons].filter(Boolean));
   }
 
   protected _updateVisibility() {

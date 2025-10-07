@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import {Action, EventHandler, FocusLeftTabTargetKeyStroke, FocusRightTabTargetKeyStroke, InitModelOf, KeyStrokeContext, PropertyChangeEvent, PropertyEventEmitter, PropertyEventMap, scout, Widget} from "../..";
+import {Action, EventHandler, focusUtils, FocusLeftTabTargetKeyStroke, FocusRightTabTargetKeyStroke, InitModelOf, KeyStrokeContext, PropertyChangeEvent, PropertyEventEmitter, PropertyEventMap, scout, Widget} from "../..";
 
 export class TabbableCoordinator extends PropertyEventEmitter {
   declare model: TabbableCoordinatorModel;
@@ -74,12 +74,17 @@ export class TabbableCoordinator extends PropertyEventEmitter {
    * Sets the current item to the {@link initialItem}.
    */
   resetCurrentItem() {
+    let wasFocused = this.currentItem?.isFocused();
     this.setCurrentItem(this.initialItem);
+    if (wasFocused) {
+      // If former currentItem was focused, set the focus to the new one to keep it inside the container
+      this.currentItem?.focus();
+    }
   }
 
   protected _onActionItemPropertyChange(event: PropertyChangeEvent<any, Action>) {
-    if (scout.isOneOf(event.propertyName, 'overflown', 'enabledComputed', 'visible', 'hidden')) { // 'hidden' belongs to the EllipsisMenu
-      if (!this.currentItem || event.source === this.currentItem) {
+    if (scout.isOneOf(event.propertyName, 'overflown', 'enabledComputed', 'visible', 'selected', 'hidden')) { // 'hidden' belongs to the EllipsisMenu
+      if (!this.currentItem || event.source === this.currentItem && !this.currentItem.isTabTarget()) {
         this.resetCurrentItem();
       }
     }
@@ -111,6 +116,10 @@ export class TabbableItem {
 
   focus(): void {
     this.$container[0].focus();
+  }
+
+  isFocused(): boolean {
+    return focusUtils.isActiveElement(this.$container);
   }
 }
 

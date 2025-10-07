@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -7,10 +7,20 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {arrays, ContextMenuPopup, DesktopTabArea, Form, HAlign, Menu, scout, SimpleTab} from '../../index';
+import {arrays, ContextMenuPopup, DesktopTabArea, DesktopTabExecKeyStroke, Form, HAlign, KeyStrokeContext, Menu, scout, SimpleTab} from '../../index';
 
 export class DesktopTab extends SimpleTab<Form> {
   declare parent: DesktopTabArea;
+
+  protected override _createKeyStrokeContext(): KeyStrokeContext {
+    return new KeyStrokeContext();
+  }
+
+  protected override _initKeyStrokeContext() {
+    super._initKeyStrokeContext();
+
+    this.keyStrokeContext.registerKeyStroke(new DesktopTabExecKeyStroke(this));
+  }
 
   protected override _render() {
     super._render();
@@ -66,5 +76,9 @@ export class DesktopTab extends SimpleTab<Form> {
     let openViews = this.parent.tabs.map(desktopTab => desktopTab.view);
     arrays.remove(openViews, this.view);
     this.session.desktop.cancelViews(openViews);
+  }
+
+  override isTabTarget(): boolean {
+    return super.isTabTarget() && !this.selected;
   }
 }

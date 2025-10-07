@@ -7,11 +7,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {aria, Event, EventHandler, GlassPaneContribution, InitModelOf, ObjectIdProvider, PropertyChangeEvent, SimpleTabEventMap, SimpleTabModel, Status, strings, tooltips, Widget} from '../index';
+import {aria, Device, Event, EventHandler, GlassPaneContribution, InitModelOf, ObjectIdProvider, PropertyChangeEvent, SimpleTabEventMap, SimpleTabModel, Status, strings, TabbableItem, tooltips, Widget} from '../index';
 
 export type DisplayViewId = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW' | 'C' | 'OUTLINE' | 'OUTLINE_SELECTOR' | 'PAGE_DETAIL' | 'PAGE_SEARCH' | 'PAGE_TABLE';
 
-export class SimpleTab<TView extends SimpleTabView = SimpleTabView> extends Widget implements SimpleTabModel<TView> {
+export class SimpleTab<TView extends SimpleTabView = SimpleTabView> extends Widget implements SimpleTabModel<TView>, TabbableItem {
   declare model: SimpleTabModel<TView>;
   declare eventMap: SimpleTabEventMap<TView>;
   declare self: SimpleTab<any>;
@@ -25,6 +25,7 @@ export class SimpleTab<TView extends SimpleTabView = SimpleTabView> extends Widg
   saveNeededVisible: boolean;
   status: Status;
   selected: boolean;
+  tabbable: boolean;
   $title: JQuery;
   $subTitle: JQuery;
   $iconContainer: JQuery;
@@ -126,6 +127,7 @@ export class SimpleTab<TView extends SimpleTabView = SimpleTabView> extends Widg
     this._renderSaveNeeded();
     this._renderStatus();
     this._renderSelected();
+    this._renderTabbable();
   }
 
   protected override _remove() {
@@ -155,6 +157,20 @@ export class SimpleTab<TView extends SimpleTabView = SimpleTabView> extends Widg
 
   protected _renderIconId() {
     this.$iconContainer.icon(this.iconId);
+  }
+
+  setTabbable(tabbable: boolean) {
+    this.setProperty('tabbable', tabbable);
+  }
+
+  protected _renderTabbable() {
+    this.$container.setTabbable(this.tabbable && this.enabledComputed && !Device.get().supportsOnlyTouch());
+  }
+
+  isTabTarget(): boolean {
+    // It is necessary to check for the visibility of the $container because the SimpleTabLayout makes the $container invisible
+    // if a tab is moved into the overflow-menu instead of adjusting the visible property of the tab
+    return this.enabledComputed && this.visible && this.rendered && this.$container.isVisible();
   }
 
   setClosable(closable: boolean) {

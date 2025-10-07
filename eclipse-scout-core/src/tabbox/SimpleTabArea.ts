@@ -7,7 +7,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {AbstractLayout, EnumObject, Event, EventHandler, HtmlComponent, InitModelOf, SimpleTab, SimpleTabAreaEventMap, SimpleTabAreaLayout, SimpleTabAreaModel, SimpleTabView, Widget, widgets} from '../index';
+import {
+  AbstractLayout, EnumObject, Event, EventHandler, FocusLeftTabTargetKeyStroke, FocusRightTabTargetKeyStroke, HtmlComponent, InitModelOf, KeyStrokeContext, scout, SimpleTab, SimpleTabAreaEventMap, SimpleTabAreaLayout, SimpleTabAreaModel,
+  SimpleTabOverflowMenu, SimpleTabView, TabbableCoordinator, TabbableItem, Widget, widgets
+} from '../index';
 
 export type SimpleTabAreaDisplayStyle = EnumObject<typeof SimpleTabArea.DisplayStyle>;
 
@@ -23,6 +26,7 @@ export class SimpleTabArea<TView extends SimpleTabView = SimpleTabView> extends 
 
   displayStyle: SimpleTabAreaDisplayStyle;
   tabs: SimpleTab<TView>[];
+  tabbableCoordinator: TabbableCoordinator;
 
   protected _selectedViewTab: SimpleTab<TView>;
   protected _tabClickHandler: EventHandler<Event<SimpleTab<TView>>>;
@@ -32,6 +36,7 @@ export class SimpleTabArea<TView extends SimpleTabView = SimpleTabView> extends 
     this.displayStyle = SimpleTabArea.DisplayStyle.DEFAULT;
     this.tabs = [];
     this._selectedViewTab = null;
+    this.tabbableCoordinator = scout.create(TabbableCoordinator);
     this._addWidgetProperties(['tabs']);
   }
 
@@ -39,6 +44,16 @@ export class SimpleTabArea<TView extends SimpleTabView = SimpleTabView> extends 
     super._init(model);
 
     this._tabClickHandler = this._onTabClick.bind(this);
+  }
+
+  protected override _createKeyStrokeContext(): KeyStrokeContext {
+    return new KeyStrokeContext();
+  }
+
+  protected override _initKeyStrokeContext() {
+    super._initKeyStrokeContext();
+
+    this.tabbableCoordinator.registerKeyStrokes(this);
   }
 
   protected override _render() {
@@ -139,6 +154,7 @@ export class SimpleTabArea<TView extends SimpleTabView = SimpleTabView> extends 
     }
     this.tabs.splice(insertPosition + 1, 0, tab);
     tab.on('click', this._tabClickHandler);
+    this._updateTabbableItems();
     if (this.rendered) {
       this._renderVisible();
       tab.renderAfter(this.$container, sibling);
@@ -149,15 +165,29 @@ export class SimpleTabArea<TView extends SimpleTabView = SimpleTabView> extends 
 
   destroyTab(tab: SimpleTab<TView>) {
     let index = this.tabs.indexOf(tab);
-    if (index > -1) {
-      this.tabs.splice(index, 1);
-      tab.destroy();
-      tab.off('click', this._tabClickHandler);
-      if (this.rendered) {
-        this._renderVisible();
-        widgets.updateFirstLastMarker(this.getTabs());
-        this.invalidateLayoutTree();
-      }
+    if (index < 0) {
+      return;
     }
+    this.tabs.splice(index, 1);
+    tab.destroy();
+    tab.off('click', this._tabClickHandler);
+    this._updateTabbableItems();
+    if (this.rendered) {
+      this._renderVisible();
+      widgets.updateFirstLastMarker(this.getTabs());
+      this.invalidateLayoutTree();
+    }
+  }
+
+  /**
+   * @internal
+   */
+  _updateTabbableItems() {
+    let items: TabbableItem[] = [...this.tabs];
+    let overflowTab = this.findChild(SimpleTabOverflowMenu);
+    if (overflowTab) {
+      items.push(overflowTab);
+    }
+    this.tabbableCoordinator.setItems(items);
   }
 }
