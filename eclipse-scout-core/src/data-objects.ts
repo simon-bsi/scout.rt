@@ -189,6 +189,9 @@ export class TextColumnUserFilterStateDo extends BaseDoEntity implements IUserFi
 export interface ITableCustomizerDo extends BaseDoEntity {
 }
 
+export interface ICustomColumnDo extends BaseDoEntity {
+}
+
 // --------------------------------------------------
 
 @typeName('scout.UiPreferences')

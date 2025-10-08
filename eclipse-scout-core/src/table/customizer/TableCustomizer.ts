@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {Column, InitModelOf, ITableCustomizerDo, ObjectWithType, scout, Session, Table, TableCustomizerModel} from '../../index';
+import {Column, ICustomColumnDo, InitModelOf, ITableCustomizerDo, ObjectWithType, scout, Session, Table, TableCustomizerModel} from '../../index';
 
 export abstract class TableCustomizer implements TableCustomizerModel, ObjectWithType {
   declare model: TableCustomizerModel;
@@ -43,11 +43,19 @@ export abstract class TableCustomizer implements TableCustomizerModel, ObjectWit
 
   // --------------------
 
-  abstract addColumn(insertAfterColumn?: Column<any>): JQuery.Promise<void>;
+  abstract addColumn(positionOrInsertAfterColumn?: number | Column<any>): JQuery.Promise<void>;
 
   abstract modifyColumn(column: Column<any>): JQuery.Promise<void>;
 
   abstract removeColumns(columns: Column<any>[]);
+
+  // --------------------
+
+  abstract addColumnConfig(columnConfig: ICustomColumnDo, positionOrInsertAfterColumn?: number | Column<any>): JQuery.Promise<Column<any>>;
+
+  abstract modifyColumnConfig(columnConfig: ICustomColumnDo): JQuery.Promise<Column<any>>;
+
+  // --------------------
 
   abstract removeAllColumns();
 
