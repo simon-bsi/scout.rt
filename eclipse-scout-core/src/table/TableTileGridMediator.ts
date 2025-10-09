@@ -675,6 +675,7 @@ export class TableTileGridMediator extends Widget implements TableTileGridMediat
   protected _renderTileTableHeader() {
     if (this.table.tileTableHeader) {
       this.table.tileTableHeader.render();
+      this.table.footer?.$container?.before(this.table.tileTableHeader.$container);
     }
   }
 
@@ -687,6 +688,7 @@ export class TableTileGridMediator extends Widget implements TableTileGridMediat
   protected _renderTileAccordion() {
     if (!this.tileAccordion.rendered) {
       this.tileAccordion.render();
+      this.table.footer?.$container?.before(this.tileAccordion.$container);
     }
   }
 

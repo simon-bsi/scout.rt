@@ -647,6 +647,11 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
     if (this.scrollToSelection) {
       this.revealSelection();
     }
+    if (!this.rendering) {
+      // Adjust enabled state and position if data is rendered later (e.g. after returning from tile mode)
+      this._renderEnabled();
+      this.footer?.$container?.before(this.$data);
+    }
   }
 
   protected override _renderProperties() {
