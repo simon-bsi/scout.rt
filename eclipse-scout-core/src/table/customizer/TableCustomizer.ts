@@ -42,22 +42,25 @@ export abstract class TableCustomizer implements TableCustomizerModel, ObjectWit
   abstract getCustomizerData(): ITableCustomizerDo;
 
   // --------------------
+  // FIXME bsh [js-custom-columns] Document the following methods
 
   abstract addColumn(positionOrInsertAfterColumn?: number | Column<any>): JQuery.Promise<void>;
 
-  abstract modifyColumn(column: Column<any>): JQuery.Promise<void>;
-
-  abstract removeColumns(columns: Column<any>[]);
+  abstract addColumnConfig(columnConfig: ICustomColumnDo, positionOrInsertAfterColumn?: number | Column<any>): JQuery.Promise<Column<any>>;
 
   // --------------------
 
-  abstract addColumnConfig(columnConfig: ICustomColumnDo, positionOrInsertAfterColumn?: number | Column<any>): JQuery.Promise<Column<any>>;
+  abstract modifyColumn(column: Column<any>): JQuery.Promise<void>;
 
   abstract modifyColumnConfig(columnConfig: ICustomColumnDo): JQuery.Promise<Column<any>>;
 
   // --------------------
 
+  abstract removeColumns(columns: Column<any>[]);
+
   abstract removeAllColumns();
+
+  // --------------------
 
   abstract isCustomizable(column: Column<any>): boolean;
 }

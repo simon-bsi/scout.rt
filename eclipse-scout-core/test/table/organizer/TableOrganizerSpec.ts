@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 import {TableSpecHelper} from '../../../src/testing/index';
-import {arrays, Column, ITableCustomizerDo, scout, TableCustomizer, TableOrganizer} from '../../../src';
+import {arrays, Column, ICustomColumnDo, ITableCustomizerDo, scout, TableCustomizer, TableOrganizer} from '../../../src';
 
 describe('TableOrganizer', () => {
 
@@ -424,11 +424,19 @@ describe('TableOrganizer', () => {
       return null;
     }
 
-    override addColumn(insertAfterColumn?: Column<any>): JQuery.Promise<void> {
+    override addColumn(positionOrInsertAfterColumn?: number | Column<any>): JQuery.Promise<void> {
+      return $.resolvedPromise();
+    }
+
+    override addColumnConfig(columnConfig: ICustomColumnDo, positionOrInsertAfterColumn?: number | Column<any>): JQuery.Promise<Column<any>> {
       return $.resolvedPromise();
     }
 
     override modifyColumn(column: Column<any>): JQuery.Promise<void> {
+      return $.resolvedPromise();
+    }
+
+    override modifyColumnConfig(columnConfig: ICustomColumnDo): JQuery.Promise<Column<any>> {
       return $.resolvedPromise();
     }
 
