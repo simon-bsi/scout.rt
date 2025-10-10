@@ -12,7 +12,8 @@ import {
   ContextMenuPopup, dataObjects, DefaultTableAccessibilityRenderer, Desktop, DesktopPopupOpenEvent, Device, DisplayViewId, DoubleClickSupport, dragAndDrop, DragAndDropHandler, DropType, EnumObject, ErrorHandler, EventHandler, Filter,
   Filterable, FilterOrFunction, FilterResult, FilterSupport, FullModelOf, graphics, HierarchicalTableAccessibilityRenderer, HtmlComponent, IconColumn, InitModelOf, Insets, IUserFilterStateDo, keys, KeyStrokeContext,
   LimitedResultTableStatus, LoadingSupport, Menu, MenuBar, MenuDestinations, MenuItemsOrder, menus as menuUtil, menus, NumberColumn, NumberColumnAggregationFunction, NumberColumnBackgroundEffect, ObjectOrChildModel, ObjectOrModel, objects,
-  Predicate, PropertyChangeEvent, Range, scout, scrollbars, ScrollToOptions, Status, StatusOrModel, strings, styles, TabbableCoordinator, TableClientUiPreferenceProfileDo, TableCompactHandler, TableControl, TableCopyKeyStroke,
+  Predicate, PropertyChangeEvent, Range, scout, scrollbars, ScrollToAlignment, ScrollToOptions, Status, StatusOrModel, strings, styles, TabbableCoordinator, TableClientUiPreferenceProfileDo, TableCompactHandler, TableControl,
+  TableCopyKeyStroke,
   TableCustomizer, TableEventMap, TableFooter, TableHeader, TableLayout, TableModel, TableNavigationCollapseKeyStroke, TableNavigationDownKeyStroke, TableNavigationEndKeyStroke, TableNavigationExpandKeyStroke, TableNavigationHomeKeyStroke,
   TableNavigationPageDownKeyStroke, TableNavigationPageUpKeyStroke, TableNavigationUpKeyStroke, TableOrganizer, TableRefreshKeyStroke, TableRow, TableRowModel, TableSelectAllKeyStroke, TableSelectionHandler, TableStartCellEditKeyStroke,
   TableTextUserFilter, TableTileGridMediator, TableToggleRowKeyStroke, TableTooltip, TableUiPreferences, tableUiPreferences, TableUpdateBuffer, TableUserFilter, TableUserFilterModel, Tile, TileTableHeaderBox, tooltips, TooltipSupport,
@@ -3721,7 +3722,7 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
     }
   }
 
-  scrollTo(row: TableRow, options?: ScrollToOptions | string) {
+  scrollTo(row: TableRow, options?: ScrollToOptions | ScrollToAlignment) {
     if (this.viewRangeRendered.size() === 0) {
       // Cannot scroll to a row no row is rendered
       return;

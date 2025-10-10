@@ -8,7 +8,9 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import {Action, EventHandler, focusUtils, FocusLeftTabTargetKeyStroke, FocusRightTabTargetKeyStroke, InitModelOf, KeyStrokeContext, PropertyChangeEvent, PropertyEventEmitter, PropertyEventMap, scout, Widget} from "../..";
+import {
+  Action, Event, EventHandler, FocusLeftTabTargetKeyStroke, FocusOptions, FocusRightTabTargetKeyStroke, focusUtils, InitModelOf, KeyStrokeContext, PropertyChangeEvent, PropertyEventEmitter, PropertyEventMap, scout, scrollbars, Widget
+} from '../..';
 
 export class TabbableCoordinator extends PropertyEventEmitter {
   declare model: TabbableCoordinatorModel;
@@ -19,10 +21,12 @@ export class TabbableCoordinator extends PropertyEventEmitter {
   currentItem: TabbableItem;
   initialItemProvider: () => TabbableItem;
   protected _actionItemPropertyChangeHandler: EventHandler<PropertyChangeEvent>;
+  protected _focusHandler: (event: JQuery.FocusEvent) => void;
 
   constructor() {
     super();
     this._actionItemPropertyChangeHandler = this._onActionItemPropertyChange.bind(this);
+    this._focusHandler = this._onItemFocus.bind(this);
   }
 
   protected override _init(model: InitModelOf<this>) {
@@ -41,12 +45,21 @@ export class TabbableCoordinator extends PropertyEventEmitter {
       }
     }
     this._setProperty('items', items);
-    this.resetCurrentItem();
+    if (!this._includes$Item(this.currentItem?.$container)) {
+      this.resetCurrentItem();
+    }
     for (const item of this.items) {
       if (item instanceof Action) {
         item.on('propertyChange', this._actionItemPropertyChangeHandler);
       }
     }
+  }
+
+  protected _includes$Item($item: JQuery): boolean {
+    if (!$item) {
+      return false;
+    }
+    return this.items.some(item => item.$container?.[0] === $item[0]);
   }
 
   /**
@@ -57,9 +70,23 @@ export class TabbableCoordinator extends PropertyEventEmitter {
     if (currentItem === this.currentItem) {
       return;
     }
-    this.currentItem?.setTabbable(false);
+
+    if (this.currentItem) {
+      this.currentItem.setTabbable(false);
+      this.currentItem.$container?.off('focus', this._focusHandler);
+    }
+
     this.setProperty('currentItem', currentItem);
-    currentItem?.setTabbable(true);
+    if (currentItem) {
+      currentItem.setTabbable(true);
+      if (currentItem.$container) {
+        currentItem.$container.on('focus', this._focusHandler);
+      } else if (currentItem instanceof Widget) {
+        currentItem.on('render', () => {
+          currentItem.$container.on('focus', this._focusHandler);
+        });
+      }
+    }
   }
 
   get initialItem(): TabbableItem {
@@ -80,6 +107,10 @@ export class TabbableCoordinator extends PropertyEventEmitter {
       // If former currentItem was focused, set the focus to the new one to keep it inside the container
       this.currentItem?.focus();
     }
+  }
+
+  protected _onItemFocus(event: JQuery.FocusEvent) {
+    this.trigger('itemFocus', {item: this.currentItem});
   }
 
   protected _onActionItemPropertyChange(event: PropertyChangeEvent<any, Action>) {
@@ -114,8 +145,12 @@ export class TabbableItem {
     return this.$container.isVisible() && this.$container.isEnabled();
   }
 
-  focus(): void {
-    this.$container[0].focus();
+  focus(options?: FocusOptions): void {
+    this.$container[0].focus(options);
+  }
+
+  reveal() {
+    scrollbars.reveal(this.$container);
   }
 
   isFocused(): boolean {
@@ -128,7 +163,12 @@ export interface TabbableCoordinatorModel {
   initialItemProvider?: () => TabbableItem;
 }
 
+export interface ItemFocusEvent extends Event<TabbableCoordinator> {
+  item: TabbableItem;
+}
+
 export interface TabbableCoordinatorEventMap extends PropertyEventMap {
+  'itemFocus': ItemFocusEvent;
   'propertyChange:currentItem': PropertyChangeEvent<TabbableItem>;
   'propertyChange:items': PropertyChangeEvent<TabbableItem[]>;
 }

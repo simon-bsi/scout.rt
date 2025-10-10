@@ -8,9 +8,9 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 import {
-  aria, arrays, Column, ColumnModel, ColumnUserFilter, Device, EventHandler, FocusLeftTabTargetKeyStroke, FocusRightTabTargetKeyStroke, graphics, GroupBoxMenuItemsOrder, InitModelOf, inspector, keys, KeyStrokeContext, MenuBar,
-  MenuDestinations, ObjectIdProvider, objects, PropertyChangeEvent, Rectangle, scout, scrollbars, SomeRequired, strings, styles, TabbableCoordinator, TabbableItem, Table, TableColumnMovedEvent, TableColumnResizedEvent,
-  TableFilterAddedEvent, TableFilterRemovedEvent, TableHeaderEventMap, TableHeaderMenu, TableHeaderModel, tooltips, Widget
+  aria, arrays, Column, ColumnModel, ColumnUserFilter, Device, EventHandler, graphics, GroupBoxMenuItemsOrder, InitModelOf, inspector, ItemFocusEvent, keys, KeyStrokeContext, MenuBar, MenuDestinations, ObjectIdProvider, objects,
+  PropertyChangeEvent, Rectangle, scout, scrollbars, SomeRequired, strings, styles, TabbableCoordinator, TabbableItem, Table, TableColumnMovedEvent, TableColumnResizedEvent, TableFilterAddedEvent, TableFilterRemovedEvent,
+  TableHeaderEventMap, TableHeaderMenu, TableHeaderModel, tooltips, Widget
 } from '../index';
 import $ from 'jquery';
 
@@ -52,11 +52,13 @@ export class TableHeader extends Widget implements TableHeaderModel {
     this._tableColumnResizedHandler = this._onTableColumnResized.bind(this);
     this._tableColumnMovedHandler = this._onTableColumnMoved.bind(this);
     this._renderedColumns = [];
-    this.tabbableCoordinator = scout.create(TabbableCoordinator);
   }
 
   protected override _init(options: InitModelOf<this>) {
     super._init(options);
+
+    this.tabbableCoordinator = scout.create(TabbableCoordinator);
+    this.tabbableCoordinator.on('itemFocus', this._onTabbableItemFocus.bind(this));
 
     this.menuBar = scout.create(MenuBar, {
       parent: this,
@@ -288,7 +290,7 @@ export class TableHeader extends Widget implements TableHeaderModel {
             return;
           }
           // make sure selected header item is visible
-          scrollbars.scrollHorizontalTo(that.table.$data, $headerItem);
+          that._scrollToHeaderItem($headerItem);
 
           // move menu
           if (that.tableHeaderMenu && that.tableHeaderMenu.rendered) {
@@ -918,5 +920,30 @@ export class TableHeader extends Widget implements TableHeaderModel {
     if (event.filter.filterType === ColumnUserFilter.TYPE && column.$header) {
       this._renderColumnState(column);
     }
+  }
+
+  protected _onTabbableItemFocus(event: ItemFocusEvent) {
+    if (!this.table.rendered) {
+      return;
+    }
+
+    let $item = event.item.$container;
+    if (!$item.hasClass('table-header-item')) {
+      // A header menu is focused, no scrolling necessary
+      return;
+    }
+
+    // If an element is focused using tab and the element was not in the viewport,
+    // the browser scrolls to that element -> revert this scrolling first
+    this._reconcileScrollPos();
+
+    this._scrollToHeaderItem($item);
+  }
+
+  protected _scrollToHeaderItem($item: JQuery<HTMLElement>) {
+    scrollbars.scrollHorizontalTo(this.table.$data, $item, {
+      scrollOffsetLeft: graphics.insets(this.$container).left,
+      scrollOffsetRight: this.$menuBarContainer.isVisible() ? this.$menuBarContainer.outerWidth(true) : 0
+    });
   }
 }
