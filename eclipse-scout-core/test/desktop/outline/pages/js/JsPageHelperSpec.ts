@@ -310,6 +310,7 @@ describe('JsPageHelper', () => {
       // noinspection ES6MissingAwait
       helper.callLoadChildPages(scout.create(MyPageParamDo, {id: 'foo'}));
 
+      // TODO fsh await hybridManager.when('hybridAction')?
       // await-tick-await resolves jQuery promises that are awaited (const foo = await jQueryPromise)
       await Promise.resolve();
       jasmine.clock().tick(1);
