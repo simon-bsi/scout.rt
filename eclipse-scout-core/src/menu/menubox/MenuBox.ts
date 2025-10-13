@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {aria, HtmlComponent, InitModelOf, KeyStrokeContext, Menu, MenuBoxEventMap, MenuBoxLayout, MenuBoxModel, ObjectOrChildModel, scout, TabbableCoordinator, Widget} from '../../index';
+import {aria, EllipsisMenu, HtmlComponent, InitModelOf, KeyStrokeContext, Menu, MenuBoxEventMap, MenuBoxLayout, MenuBoxModel, ObjectOrChildModel, scout, TabbableCoordinator, Widget} from '../../index';
 
 export class MenuBox extends Widget implements MenuBoxModel {
   declare model: MenuBoxModel;
@@ -25,13 +25,13 @@ export class MenuBox extends Widget implements MenuBoxModel {
     super();
     this.compact = false;
     this.menus = [];
-    this.uiMenuCssClass = 'menu-box-item';
+    this.uiMenuCssClass = 'menu-box-item prevent-initial-focus';
     this._addWidgetProperties('menus');
   }
 
   protected override _init(options: InitModelOf<this>) {
     super._init(options);
-    this.tabbableCoordinator = scout.create(TabbableCoordinator);
+    this.tabbableCoordinator = scout.create(TabbableCoordinator, {parent: this});
     this._setMenus(this.menus);
   }
 
@@ -66,7 +66,7 @@ export class MenuBox extends Widget implements MenuBoxModel {
   protected _setMenus(menus: Menu[]) {
     menus.forEach(menu => this._initMenu(menu));
     this._setProperty('menus', menus);
-    this.tabbableCoordinator.setItems(this.menus);
+    this._updateTabbableItems();
   }
 
   protected _initMenu(menu: Menu) {
@@ -113,5 +113,16 @@ export class MenuBox extends Widget implements MenuBoxModel {
     }
     this.setCompact(this._compactOrig);
     this._compactOrig = undefined;
+  }
+
+  /**
+   * @internal
+   */
+  _updateTabbableItems(ellipsisMenu?: EllipsisMenu) {
+    let items = [...this.menus];
+    if (ellipsisMenu) {
+      items.push(ellipsisMenu);
+    }
+    this.tabbableCoordinator.setItems(items);
   }
 }

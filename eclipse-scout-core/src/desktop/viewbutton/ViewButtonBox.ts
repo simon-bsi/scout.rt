@@ -42,7 +42,7 @@ export class ViewButtonBox extends Widget implements ViewButtonBoxModel {
   protected override _init(model: InitModelOf<this>) {
     super._init(model);
     this.desktop = this.session.desktop;
-    this.tabbableCoordinator = scout.create(TabbableCoordinator);
+    this.tabbableCoordinator = scout.create(TabbableCoordinator, {parent: this});
     this.viewMenuTab = scout.create(ViewMenuTab, {
       parent: this
     });
@@ -180,6 +180,10 @@ export class ViewButtonBox extends Widget implements ViewButtonBoxModel {
 
     // Inform viewMenu tab about new selection
     this.viewMenuTab.onViewButtonSelected();
+
+    // TabbableCoordinator would reset it to initial item if a view button is selected,
+    // but the button of the view menu is still selected and therefore not a tab target yet, so the focus would be on the dropdown -> reset again
+    this.tabbableCoordinator.resetCurrentItem();
   }
 
   protected _onViewButtonPropertyChange(event: PropertyChangeEvent<any, ViewButton>) {

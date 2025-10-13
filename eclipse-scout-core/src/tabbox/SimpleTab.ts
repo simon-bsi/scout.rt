@@ -102,7 +102,7 @@ export class SimpleTab<TView extends SimpleTabView = SimpleTabView> extends Widg
   }
 
   protected override _render() {
-    this.$container = this.$parent.prependDiv('simple-tab');
+    this.$container = this.$parent.prependDiv('simple-tab prevent-initial-focus');
     this.$container.on('mousedown', this._onMouseDown.bind(this));
     this.$titleLine = this.$container.appendDiv('title-line');
     this.$iconContainer = this.$titleLine.appendDiv('icon-container');

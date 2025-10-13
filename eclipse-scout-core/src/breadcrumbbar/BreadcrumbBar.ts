@@ -30,7 +30,7 @@ export class BreadcrumbBar extends Widget implements BreadcrumbBarModel {
 
   protected override _init(model: InitModelOf<this>) {
     super._init(model);
-    this.tabbableCoordinator = scout.create(TabbableCoordinator);
+    this.tabbableCoordinator = scout.create(TabbableCoordinator, {parent: this});
     this._setBreadcrumbItems(this.breadcrumbItems);
   }
 

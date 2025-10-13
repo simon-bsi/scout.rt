@@ -39,7 +39,7 @@ export class FocusRightTabTargetKeyStroke extends KeyStroke {
         item.focus();
         break;
       }
-      if ($focusedItem[0] === item.$container[0]) {
+      if ($focusedItem[0] === item.$container?.[0]) {
         focusNext = true;
       }
     }

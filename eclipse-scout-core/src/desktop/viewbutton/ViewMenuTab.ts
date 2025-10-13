@@ -50,7 +50,7 @@ export class ViewMenuTab extends Widget implements ViewMenuTabModel {
       parent: this,
       iconId: icons.ANGLE_DOWN,
       tabbable: false,
-      cssClass: 'view-menu',
+      cssClass: 'view-menu prevent-initial-focus',
       toggleAction: true
     });
     this.dropdown.on('action', this.togglePopup.bind(this));
@@ -150,8 +150,7 @@ export class ViewMenuTab extends Widget implements ViewMenuTabModel {
     viewButton.mirror({
       delegateEventsToOriginal: ['acceptInput', 'action'],
       delegateAllPropertiesToClone: true,
-      delegateAllPropertiesToOriginal: true,
-      excludePropertiesToOriginal: ['selected']
+      delegateAllPropertiesToOriginal: true
     }, clone);
 
     this._setProperty('selectedButton', clone);
@@ -186,6 +185,7 @@ export class ViewMenuTab extends Widget implements ViewMenuTabModel {
 
   setSelected(selected: boolean) {
     this.setProperty('selected', selected);
+    this.selectedButton?.setSelected(selected);
   }
 
   protected _renderSelected() {

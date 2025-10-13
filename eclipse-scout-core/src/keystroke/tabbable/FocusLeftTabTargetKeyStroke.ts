@@ -34,7 +34,7 @@ export class FocusLeftTabTargetKeyStroke extends KeyStroke {
     let lastValidItem: TabbableItem;
 
     for (const item of tabbableItems) {
-      if ($focusedItem[0] === item.$container[0]) {
+      if ($focusedItem[0] === item.$container?.[0]) {
         if (lastValidItem) {
           this.tabbableCoordinator.setCurrentItem(lastValidItem);
           lastValidItem.focus();

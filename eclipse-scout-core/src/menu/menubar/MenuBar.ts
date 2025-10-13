@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 import {
-  aria, arrays, EllipsisMenu, EnumObject, Event, EventHandler, FocusLeftTabTargetKeyStroke, FocusRightTabTargetKeyStroke, GroupBoxMenuItemsOrder, HtmlComponent, InitModelOf, keys, KeyStroke, KeyStrokeContext, Menu, MenuBarBox,
-  MenuBarEventMap, MenuBarLayout, MenuBarModel, MenuDestinations, MenuFilter, MenuOrder, menus, ObjectIdProvider, ObjectOrChildModel, OrderedMenuItems, PropertyChangeEvent, scout, TabbableCoordinator, TooltipPosition, Widget, widgets
+  aria, arrays, EllipsisMenu, EnumObject, Event, EventHandler, GroupBoxMenuItemsOrder, HtmlComponent, InitModelOf, keys, KeyStroke, KeyStrokeContext, Menu, MenuBarBox, MenuBarEventMap, MenuBarLayout, MenuBarModel, MenuDestinations,
+  MenuFilter, MenuOrder, menus, ObjectIdProvider, ObjectOrChildModel, OrderedMenuItems, PropertyChangeEvent, scout, TabbableCoordinator, TooltipPosition, Widget, widgets
 } from '../../index';
 
 export type MenuBarEllipsisPosition = EnumObject<typeof MenuBar.EllipsisPosition>;
@@ -53,7 +53,6 @@ export class MenuBar extends Widget implements MenuBarModel {
       right: [],
       all: []
     };
-    this.defaultMenu = null;
     this.ellipsisPosition = MenuBar.EllipsisPosition.RIGHT;
     this._menuItemPropertyChangeHandler = this._onMenuItemPropertyChange.bind(this);
     this._focusHandler = this._onMenuItemFocus.bind(this);
@@ -81,6 +80,7 @@ export class MenuBar extends Widget implements MenuBarModel {
     }
     if (this.tabbable) {
       this.tabbableCoordinator = scout.create(TabbableCoordinator, {
+        parent: this,
         initialItemProvider: () => this.defaultMenu
       });
       this.tabbableCoordinator.on('propertyChange:currentItem', event => this.setTabbableMenu(event.newValue as Menu));
@@ -203,7 +203,6 @@ export class MenuBar extends Widget implements MenuBarModel {
     if (rightFirst) {
       this.menuboxRight.setMenuItems(this.orderedMenuItems.right);
       this.menuboxLeft.setMenuItems(this.orderedMenuItems.left);
-
     } else {
       this.menuboxLeft.setMenuItems(this.orderedMenuItems.left);
       this.menuboxRight.setMenuItems(this.orderedMenuItems.right);
@@ -230,9 +229,7 @@ export class MenuBar extends Widget implements MenuBarModel {
   }
 
   protected _createOrderedMenus(menuItems: Menu[]): OrderedMenuItems {
-    let orderedMenuItems = this.menuSorter.order(menuItems),
-      ellipsisIndex = -1,
-      ellipsis;
+    let orderedMenuItems = this.menuSorter.order(menuItems);
     orderedMenuItems.right.forEach(item => {
       item.rightAligned = true;
     });
@@ -243,7 +240,7 @@ export class MenuBar extends Widget implements MenuBarModel {
         this._ellipsis.setChildActions([]);
         this._ellipsis.destroy();
       }
-      ellipsis = scout.create(EllipsisMenu, {
+      let ellipsis = scout.create(EllipsisMenu, {
         parent: this,
         cssClass: 'overflow-menu-item'
       });
@@ -252,6 +249,7 @@ export class MenuBar extends Widget implements MenuBarModel {
       // add ellipsis to the correct position
       if (this.ellipsisPosition === MenuBar.EllipsisPosition.RIGHT) {
         // try right
+        let ellipsisIndex = -1;
         let reverseIndexPosition = this._getFirstStackableIndexPosition(orderedMenuItems.right.slice().reverse());
         if (reverseIndexPosition > -1) {
           ellipsisIndex = orderedMenuItems.right.length - reverseIndexPosition;
@@ -267,7 +265,7 @@ export class MenuBar extends Widget implements MenuBarModel {
         }
       } else {
         // try left
-        ellipsisIndex = this._getFirstStackableIndexPosition(orderedMenuItems.left);
+        let ellipsisIndex = this._getFirstStackableIndexPosition(orderedMenuItems.left);
         if (ellipsisIndex > -1) {
           orderedMenuItems.left.splice(ellipsisIndex, 0, ellipsis);
         } else {

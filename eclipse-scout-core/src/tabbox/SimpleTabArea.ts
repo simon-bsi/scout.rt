@@ -36,7 +36,7 @@ export class SimpleTabArea<TView extends SimpleTabView = SimpleTabView> extends 
     this.displayStyle = SimpleTabArea.DisplayStyle.DEFAULT;
     this.tabs = [];
     this._selectedViewTab = null;
-    this.tabbableCoordinator = scout.create(TabbableCoordinator);
+    this.tabbableCoordinator = scout.create(TabbableCoordinator, {parent: this});
     this._addWidgetProperties(['tabs']);
   }
 

@@ -57,7 +57,7 @@ export class TableHeader extends Widget implements TableHeaderModel {
   protected override _init(options: InitModelOf<this>) {
     super._init(options);
 
-    this.tabbableCoordinator = scout.create(TabbableCoordinator);
+    this.tabbableCoordinator = scout.create(TabbableCoordinator, {parent: this});
     this.tabbableCoordinator.on('itemFocus', this._onTabbableItemFocus.bind(this));
 
     this.menuBar = scout.create(MenuBar, {
@@ -135,7 +135,14 @@ export class TableHeader extends Widget implements TableHeaderModel {
   }
 
   protected _updateTabbableItems() {
-    let headerItems = this.findHeaderItems().map((i, item) => new TabbableItem($(item))).get();
+    let headerItems = this.findHeaderItems().map((i, headerItem) => {
+      let $headerItem = $(headerItem);
+      let item = this.tabbableCoordinator.findItemFor($headerItem);
+      if (item) {
+        return item;
+      }
+      return new TabbableItem($headerItem);
+    }).get();
     this.tabbableCoordinator.setItems([...headerItems, ...this.menuBar.menuItems]);
   }
 
@@ -145,7 +152,7 @@ export class TableHeader extends Widget implements TableHeaderModel {
       isFirstColumn = (index === 0),
       isLastColumn = (index === visibleColumns.length - 1);
 
-    let $header = this.$filler.beforeDiv('table-header-item')
+    let $header = this.$filler.beforeDiv('table-header-item prevent-initial-focus')
       .setEnabled(this.enabled) // enabledComputed not used on purpose
       .data('column', column);
 

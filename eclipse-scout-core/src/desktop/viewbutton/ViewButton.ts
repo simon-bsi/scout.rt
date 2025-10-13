@@ -40,7 +40,7 @@ export class ViewButton extends Action implements ViewButtonModel {
   renderAsTab($parent: JQuery) {
     let $wrapper = $parent.appendDiv('view-tab-wrapper');
     this.render($wrapper);
-    this.$container.addClass('view-tab view-button-tab');
+    this.$container.addClass('view-tab view-button-tab prevent-initial-focus');
   }
 
   protected override _render() {

@@ -62,7 +62,6 @@ export class SimpleTabAreaLayout extends AbstractLayout {
 
     // check how many tabs fit into remaining containerSize.width
     let numVisibleTabs = Math.floor(containerSize.width / this.tabMinWidth);
-    let numOverflowTabs = numTabs - numVisibleTabs;
 
     let selectedIndex = 0;
     $tabs.each((i, tab) => {
