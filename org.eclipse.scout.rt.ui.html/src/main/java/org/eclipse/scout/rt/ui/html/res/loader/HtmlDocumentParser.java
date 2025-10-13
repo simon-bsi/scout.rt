@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -31,6 +32,7 @@ import org.eclipse.scout.rt.platform.util.IOUtility;
 import org.eclipse.scout.rt.platform.util.StringUtility;
 import org.eclipse.scout.rt.server.commons.servlet.cache.GlobalHttpResourceCache;
 import org.eclipse.scout.rt.server.commons.servlet.cache.IHttpResourceCache;
+import org.eclipse.scout.rt.shared.session.Sessions;
 import org.eclipse.scout.rt.shared.ui.webresource.ScriptResourceIndexes;
 import org.eclipse.scout.rt.shared.ui.webresource.WebResourceDescriptor;
 import org.eclipse.scout.rt.shared.ui.webresource.WebResources;
@@ -57,31 +59,34 @@ public class HtmlDocumentParser {
   protected static final Pattern PATTERN_BASE_TAG = Pattern.compile("<scout:base\\s*/?>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
   protected static final Pattern PATTERN_VERSION_TAG = Pattern.compile("<scout:version\\s*/?>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
   protected static final Pattern PATTERN_UNKNOWN_TAG = Pattern.compile("<scout:(\"[^\"]*\"|[^>]*?)*>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-  protected static final Pattern PATTERN_KEY_VALUE = Pattern.compile("([^\\s]+)=\"([^\"]*)\"");
-  @SuppressWarnings("bsiRulesDefinition:htmlInString")
+  protected static final Pattern PATTERN_KEY_VALUE = Pattern.compile("(\\S+)=\"([^\"]*)\"");
+  protected static final Pattern PATTERN_BODY_TAG = Pattern.compile("<body\\s*([^>]*)>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+  protected static final Pattern PATTERN_NONCE_ATTRIBUTE = Pattern.compile(Pattern.quote("nonce=\"scout:nonce\""));
   public static final String SCRIPT_TAG_PREFIX = "<script src=\"";
-  @SuppressWarnings("bsiRulesDefinition:htmlInString")
   public static final String SCRIPT_TAG_SUFFIX = "\"></script>";
   public static final String STYLESHEET_TAG_PREFIX = "<link rel=\"stylesheet\" type=\"text/css\" href=\"";
   public static final String STYLESHEET_TAG_SUFFIX = "\">";
 
   protected final HtmlDocumentParserParameters m_params;
   protected final IHttpResourceCache m_cache;
+  protected final List<String> m_usedNonces;
   protected String m_workingContent;
 
   public HtmlDocumentParser(HtmlDocumentParserParameters params) {
     m_params = params;
     m_cache = BEANS.get(GlobalHttpResourceCache.class);
+    m_usedNonces = new ArrayList<>();
   }
 
   public byte[] parseDocument(byte[] document) {
-    // the order of calls is important: first we must resolve all includes
     m_workingContent = new String(document, StandardCharsets.UTF_8);
+    m_usedNonces.clear();
     replaceAllTags();
     return m_workingContent.getBytes(StandardCharsets.UTF_8);
   }
 
   protected void replaceAllTags() {
+    // the order of calls is important: first we must resolve all includes
     replaceIncludeTags();
     replaceBaseTags();
     replaceVersionTags();
@@ -90,24 +95,40 @@ public class HtmlDocumentParser {
     replaceStylesheetTags();
     replaceScriptsTags();
     replaceScriptTags();
+    replaceNonceAttributes();
+    replaceBodyTag();
     stripUnknownTags();
   }
 
-  @SuppressWarnings("squid:S1149")
-  protected void replaceScriptTags(Pattern pattern, String tagPrefix, String tagSuffix) {
-    m_workingContent = pattern.matcher(m_workingContent)
-        .replaceAll(r -> tagPrefix + createExternalPath(r.group(1)) + tagSuffix);
+  protected void replaceBodyTag() {
+    m_workingContent = PATTERN_BODY_TAG.matcher(m_workingContent).replaceAll(m -> {
+      String bodyTagContent = m.group(1);
+      return "<body " + bodyTagContent + " data-scout-nonce=\"" + createAndRegisterNonce() + "\">";
+    });
   }
 
-  /**
-   * Creates the external path of the given resource, including theme, fingerprint and '.min' extensions.
-   */
-  protected String createExternalPath(String internalPath) {
-    String theme = UiThemeHelper.get().isDefaultTheme(m_params.getTheme()) ? null : m_params.getTheme();
-    return new WebResourceLoader(m_params.isMinify(), false, theme)
-        .resolveResource(internalPath)
-        .map(WebResourceDescriptor::getResolvedPath)
-        .orElse(internalPath);
+  public List<String> getUsedNonces() {
+    return Collections.unmodifiableList(m_usedNonces);
+  }
+
+  protected void replaceNonceAttributes() {
+    m_workingContent = PATTERN_NONCE_ATTRIBUTE.matcher(m_workingContent)
+        .replaceAll(m -> buildNonceAttribute());
+  }
+
+  protected String buildNonceAttribute() {
+    return "nonce=\"" + createAndRegisterNonce() + "\"";
+  }
+
+  protected String createAndRegisterNonce() {
+    String nonce = Sessions.randomSessionId();
+    m_usedNonces.add(nonce);
+    return nonce;
+  }
+
+  protected void replaceScriptTags(Pattern pattern, String tagPrefix, String tagSuffix) {
+    m_workingContent = pattern.matcher(m_workingContent)
+        .replaceAll(r -> buildScriptTag(tagPrefix, r.group(1), tagSuffix));
   }
 
   protected void replaceStylesheetTags() {
@@ -115,7 +136,6 @@ public class HtmlDocumentParser {
     replaceScriptTags(PATTERN_STYLESHEET_TAG, STYLESHEET_TAG_PREFIX, STYLESHEET_TAG_SUFFIX);
   }
 
-  @SuppressWarnings("bsiRulesDefinition:htmlInString")
   protected void replaceScriptTags() {
     // <scout:script src="scout-all-macro.css" />
     replaceScriptTags(PATTERN_SCRIPT_TAG, SCRIPT_TAG_PREFIX, SCRIPT_TAG_SUFFIX);
@@ -143,8 +163,30 @@ public class HtmlDocumentParser {
   protected String buildScriptTagsForEntryPoint(String entryPoint, String fileSuffixFilter, String tagPrefix, String tagSuffix) {
     return getAssetsForEntryPoint(entryPoint)
         .filter(script -> script.toLowerCase().endsWith(fileSuffixFilter))
-        .map(path -> tagPrefix + createExternalPath(path) + tagSuffix)
+        .map(path -> buildScriptTag(tagPrefix, path, tagSuffix))
         .collect(joining("\n"));
+  }
+
+  protected String buildScriptTag(String tagPrefix, String internalPath, String tagSuffix) {
+    WebResourceDescriptor webResource = resolveWebResource(internalPath);
+    if (webResource == null) {
+      return tagPrefix + internalPath + tagSuffix;
+    }
+
+    String path = webResource.getResolvedPath();
+    if (SCRIPT_TAG_PREFIX.equals(tagPrefix)) {
+      // TODO: find better solution
+      String nonce = createAndRegisterNonce();
+      return tagPrefix + path + "\" nonce=\"" + nonce + tagSuffix;
+    }
+    return tagPrefix + path + tagSuffix;
+  }
+
+  protected WebResourceDescriptor resolveWebResource(String internalPath) {
+    String theme = UiThemeHelper.get().isDefaultTheme(m_params.getTheme()) ? null : m_params.getTheme();
+    return new WebResourceLoader(m_params.isMinify(), false, theme)
+        .resolveResource(internalPath)
+        .orElse(null);
   }
 
   protected Stream<String> getAssetsForEntryPoint(String entryPoint) {
@@ -172,7 +214,6 @@ public class HtmlDocumentParser {
     m_workingContent = PATTERN_VERSION_TAG.matcher(m_workingContent).replaceAll(versionTag);
   }
 
-  @SuppressWarnings("squid:S1149")
   protected void replaceIncludeTags() {
     // <scout:include template="no-script.html" />
     m_workingContent = PATTERN_INCLUDE_TAG.matcher(m_workingContent).replaceAll(r -> {
@@ -207,7 +248,6 @@ public class HtmlDocumentParser {
     m_workingContent = PATTERN_MESSAGE_TAG.matcher(m_workingContent).replaceAll(this::replaceMessageTag);
   }
 
-  @SuppressWarnings("squid:S1149")
   protected String replaceMessageTag(MatchResult r) {
     HtmlHelper htmlHelper = BEANS.get(HtmlHelper.class);
     Matcher m2 = PATTERN_KEY_VALUE.matcher(r.group(1));
@@ -242,7 +282,7 @@ public class HtmlDocumentParser {
           break;
         case "plain":
           // Plain normal replacement (only supports one key, because we don't know how to separate multiple keys)
-          text = TEXTS.get(keys.get(0));
+          text = TEXTS.get(keys.getFirst());
           break;
         case "tag":
           StringBuilder tags = new StringBuilder();
@@ -254,7 +294,7 @@ public class HtmlDocumentParser {
           break;
         case "html":
         default:
-          text = htmlHelper.escape(TEXTS.get(keys.get(0)));
+          text = htmlHelper.escape(TEXTS.get(keys.getFirst()));
           break;
       }
     }
@@ -269,7 +309,6 @@ public class HtmlDocumentParser {
     return "'" + text + "'";
   }
 
-  @SuppressWarnings("squid:S1149")
   protected void stripUnknownTags() {
     m_workingContent = PATTERN_UNKNOWN_TAG.matcher(m_workingContent).replaceAll(r -> {
       LOG.warn("Removing unknown or improperly formatted scout tag from '{}': {}", m_params.getHtmlPath(), r.group());

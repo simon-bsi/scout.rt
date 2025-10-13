@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2023 BSI Business Systems Integration AG
+ * Copyright (c) 2010, 2025 BSI Business Systems Integration AG
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.eclipse.scout.rt.server.commons.servlet;
+package org.eclipse.scout.rt.security.csp;
 
 import static org.junit.Assert.assertEquals;
 
@@ -50,8 +50,28 @@ public class ContentSecurityPolicyTest {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testReportUri() {
-    testDirective(ContentSecurityPolicy.DIRECTIVE_REPORT_URI, m_csp::appendReportUri, m_csp::withReportUri);
+    m_csp.appendReportUri("foo");
+    assertEquals("report-uri foo; report-to foo", m_csp.toToken());
+
+    m_csp.withReportUri("bar");
+    assertEquals("report-uri bar; report-to bar", m_csp.toToken());
+
+    m_csp.appendReportUri("foo");
+    assertEquals("report-uri bar foo; report-to bar foo", m_csp.toToken());
+  }
+
+  @Test
+  public void testReportTo() {
+    m_csp.appendReportTo("foo");
+    assertEquals("report-uri foo; report-to foo", m_csp.toToken());
+
+    m_csp.withReportTo("bar");
+    assertEquals("report-uri bar; report-to bar", m_csp.toToken());
+
+    m_csp.appendReportTo("foo");
+    assertEquals("report-uri bar foo; report-to bar foo", m_csp.toToken());
   }
 
   @Test
@@ -100,11 +120,6 @@ public class ContentSecurityPolicyTest {
   }
 
   @Test
-  public void testPluginTypes() {
-    testDirective(ContentSecurityPolicy.DIRECTIVE_PLUGIN_TYPES, m_csp::appendPluginTypes, m_csp::withPluginTypes);
-  }
-
-  @Test
   public void testToTokenWithNullValues() {
     // Test with empty content
     m_csp.withBaseUri(null);
@@ -131,6 +146,12 @@ public class ContentSecurityPolicyTest {
     m_csp.withFontSrc(null);
     m_csp.appendConnectSrc(null);
     assertEquals(StringUtility.join(ContentSecurityPolicy.SOURCE_SEPARATOR, ContentSecurityPolicy.DIRECTIVE_BASE_URI, "foo"), m_csp.toToken());
+  }
+
+  @Test
+  public void testEmptyAndNullValues() {
+    assertEquals("", new ContentSecurityPolicy().empty().withFrameAncestors(null).toToken()); // null input is ignored
+    assertEquals("frame-ancestors", new ContentSecurityPolicy().empty().withFrameAncestors("").toToken()); // frame-ancestors is included as empty (block all)
   }
 
   @Test

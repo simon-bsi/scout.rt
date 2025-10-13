@@ -15,10 +15,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.eclipse.scout.rt.platform.BEANS;
+import org.eclipse.scout.rt.platform.util.StringUtility;
 import org.eclipse.scout.rt.platform.util.UriUtility;
-import org.eclipse.scout.rt.server.commons.servlet.ContentSecurityPolicy;
+import org.eclipse.scout.rt.security.csp.ContentSecurityPolicy;
+import org.eclipse.scout.rt.security.csp.DefaultContentSecurityPolicy;
 import org.eclipse.scout.rt.server.commons.servlet.HttpClientInfo;
-import org.eclipse.scout.rt.server.commons.servlet.HttpServletControl;
 import org.eclipse.scout.rt.server.commons.servlet.cache.IHttpResponseInterceptor;
 import org.eclipse.scout.rt.ui.html.IUiSession;
 
@@ -34,29 +35,28 @@ public class BrowserFieldContentHttpResponseInterceptor implements IHttpResponse
   @Override
   public void intercept(HttpServletRequest req, HttpServletResponse resp) {
     String cspToken = getContentSecurityPolicy(req).toToken();
-
-    if (HttpClientInfo.get(req).isMshtml()) {
-      resp.setHeader(HttpServletControl.HTTP_HEADER_CSP_LEGACY, cspToken);
-    }
-    else {
-      resp.setHeader(HttpServletControl.HTTP_HEADER_CSP, cspToken);
-    }
+    resp.setHeader(ContentSecurityPolicy.HTTP_HEADER, cspToken);
   }
 
   protected ContentSecurityPolicy getContentSecurityPolicy(HttpServletRequest req) {
-    ContentSecurityPolicy csp = BEANS.get(ContentSecurityPolicy.class);
+    // TODO use custom property for BrowserField iframes?
+    ContentSecurityPolicy csp = BEANS.get(DefaultContentSecurityPolicy.class);
 
     String baseUri = UriUtility.toBaseUri(m_browserUri);
     if (baseUri != null) {
       // Normally, the csp report url is relative. Because documents inside the browser field are
       // loaded from a "/dynamic/..." URL, the relative url has to be converted to an absolute url.
-      csp.withReportUri(baseUri + HttpServletControl.CSP_REPORT_URL);
+      csp.withReportTo(baseUri + ContentSecurityPolicy.CSP_REPORT_URL);
 
       // Bug in Chrome: CSP 'self' is not interpreted correctly in sandboxed iframes, see https://bugs.chromium.org/p/chromium/issues/detail?id=443444
       // Workaround: Add resolved URI to image and style CSP directive to allow loading of images and styles from same origin as nested iframe in browser field
       if (HttpClientInfo.get(req).isWebkit()) {
-        csp.appendImgSrc(baseUri);
-        csp.appendStyleSrc(baseUri);
+        if (StringUtility.containsString(csp.getDirectives().get(ContentSecurityPolicy.DIRECTIVE_IMG_SRC), "'self'")) {
+          csp.appendImgSrc(baseUri);
+        }
+        if (StringUtility.containsString(csp.getDirectives().get(ContentSecurityPolicy.DIRECTIVE_STYLE_SRC), "'self'")) {
+          csp.appendStyleSrc(baseUri);
+        }
       }
     }
 

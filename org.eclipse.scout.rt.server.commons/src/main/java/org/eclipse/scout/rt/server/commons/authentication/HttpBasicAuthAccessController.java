@@ -28,6 +28,8 @@ import org.eclipse.scout.rt.platform.util.ImmutablePair;
 import org.eclipse.scout.rt.platform.util.Pair;
 import org.eclipse.scout.rt.platform.util.SleepUtil;
 import org.eclipse.scout.rt.platform.util.StringUtility;
+import org.eclipse.scout.rt.server.commons.servlet.HttpServletControl;
+import org.eclipse.scout.rt.server.commons.servlet.cache.HttpCacheControl;
 
 /**
  * Authenticates a request using <a href="https://tools.ietf.org/html/rfc7617">HTTP Basic Authentication</a>.
@@ -82,10 +84,7 @@ public class HttpBasicAuthAccessController implements IAccessController {
    * continues. If a principal producer is configured, the chain continues on behalf of a subject.
    */
   protected boolean handleInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain chain) throws IOException, ServletException {
-    // Never cache authentication requests.
-    response.setHeader("Cache-Control", "no-cache"); // HTTP 1.1
-    response.setHeader("Pragma", "no-cache"); // HTTP 1.0
-    response.setDateHeader("Expires", 0); // prevents caching at the proxy server
+    setDefaultHeaders(request, response);
 
     final Pair<String, char[]> credentials = readCredentials(request);
     if (credentials == null) {
@@ -107,6 +106,14 @@ public class HttpBasicAuthAccessController implements IAccessController {
       chain.doFilter(request, response);
     }
     return true;
+  }
+
+  protected void setDefaultHeaders(HttpServletRequest request, HttpServletResponse response) {
+    // Never cache authentication requests.
+    BEANS.get(HttpCacheControl.class).disableCaching(response);
+
+    // requests on /auth should have the default headers as this might also be called using GET which returns a 404 html page (container dependent)
+    BEANS.get(HttpServletControl.class).doDefaults(null, request, response);
   }
 
   /**

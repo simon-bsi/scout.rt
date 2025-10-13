@@ -210,11 +210,8 @@ public class ServiceTunnelService {
    * Method invoked to serialize a service response to be sent back to the client.
    */
   protected void serializeServiceResponse(OutputStream out, ServiceTunnelResponse serviceResponse) throws IOException {
-    HttpServletRequest req = IHttpServletRoundtrip.CURRENT_HTTP_SERVLET_REQUEST.get();
     HttpServletResponse resp = IHttpServletRoundtrip.CURRENT_HTTP_SERVLET_RESPONSE.get();
-
-    m_httpCacheControl.get().checkAndSetCacheHeaders(req, resp, null);
-
+    m_httpCacheControl.get().disableCaching(resp);
     m_contentHandler.writeResponse(out, serviceResponse);
   }
 

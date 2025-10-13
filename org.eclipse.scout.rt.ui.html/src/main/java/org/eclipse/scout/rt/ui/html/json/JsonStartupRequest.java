@@ -38,6 +38,7 @@ public class JsonStartupRequest extends JsonRequest {
   public static final String PROP_USER_AGENT = "userAgent";
   public static final String PROP_SESSION_STARTUP_PARAMS = "sessionStartupParams";
   public static final String PROP_VERSION = "version";
+  public static final String PROP_NONCE = "scoutNonce";
 
   private final Map<String, String> m_sessionStartupParams;
 
@@ -72,6 +73,10 @@ public class JsonStartupRequest extends JsonRequest {
    */
   public String getVersion() {
     return getRequestObject().optString(PROP_VERSION, null);
+  }
+
+  public String getNonce() {
+    return getSessionStartupParams().get(PROP_NONCE);
   }
 
   /**

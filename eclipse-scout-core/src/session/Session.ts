@@ -394,9 +394,10 @@ export class Session extends EventEmitter implements SessionModel, ModelAdapterL
    * Additionally, all query parameters from the URL are put in the resulting object.
    */
   protected _createSessionStartupParams(): SessionStartupParams {
-    let params = {
+    let params: SessionStartupParams = {
       url: this.url.baseUrlRaw,
-      geolocationServiceAvailable: Device.get().supportsGeolocation()
+      geolocationServiceAvailable: Device.get().supportsGeolocation(),
+      scoutNonce: App.get().nonce
     };
 
     // Extract query parameters from URL and put them in the resulting object
@@ -1676,6 +1677,7 @@ export interface SessionStartupResponse extends RemoteResponse {
 export interface SessionStartupParams {
   url?: string;
   geolocationServiceAvailable?: boolean;
+  scoutNonce?: string;
 
   [p: string]: any; // all URL parameters
 }

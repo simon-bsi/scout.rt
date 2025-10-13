@@ -329,7 +329,9 @@ export const scout = {
     $('noscript', targetDocument).remove();
     $('scout-text', targetDocument).remove();
     $('scout-version', targetDocument).remove();
-    $('body', targetDocument).addDeviceClass();
+    let body = $('body', targetDocument);
+    body.addDeviceClass()
+      .removeAttr('data-scout-nonce').removeData('scoutNonce'); // is now stored in App.nonce
 
     // Set locale of the document so screen readers read text correctly
     scout.setDocumentLocale(locales.getNavigatorLocale());

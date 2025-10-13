@@ -139,6 +139,7 @@ export class App extends EventEmitter {
   sessions: Session[];
   errorHandler: ErrorHandler;
   version: string;
+  nonce: string;
   bootstrappers: (() => JQuery.Promise<void>)[];
   protected _loadingTimeoutId: number;
 
@@ -329,6 +330,7 @@ export class App extends EventEmitter {
     }
 
     this._initVersion(options);
+    this._initNonce();
     this._prepareDOM();
     this._installErrorHandler();
     this._installGlobalMouseDownInterceptor();
@@ -427,6 +429,15 @@ export class App extends EventEmitter {
       // fallback for old browsers that do not support the animation-end event
       $loadingRoot.remove();
     }
+  }
+
+  protected _initNonce() {
+    this.nonce = document?.body?.dataset?.scoutNonce || '';
+
+    // tell webpack our nonce for all lazy loaded scripts later on
+    // see https://webpack.js.org/guides/csp/
+    // @ts-expect-error
+    __webpack_nonce__ = this.nonce;
   }
 
   protected _initVersion(options: AppModel) {

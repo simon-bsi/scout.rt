@@ -67,11 +67,6 @@ public class HtmlDocumentParserTest {
         }
         return Stream.of(SCRIPT4_NAME, SCRIPT1_NAME, SCRIPT2_NAME, SCRIPT3_NAME);
       }
-
-      @Override
-      protected String createExternalPath(String internalPath) {
-        return AbstractWebResourceResolver.getThemePath(internalPath, m_params.getTheme());
-      }
     };
   }
 

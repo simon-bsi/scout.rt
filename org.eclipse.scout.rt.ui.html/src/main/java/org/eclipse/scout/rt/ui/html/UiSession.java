@@ -140,6 +140,7 @@ public class UiSession implements IUiSession {
   private volatile boolean m_initialized;
   private volatile ISessionStore m_sessionStore;
   private volatile String m_uiSessionId;
+  private volatile String m_nonce;
   private volatile IClientSession m_clientSession;
   private volatile JsonResponse m_currentJsonResponse;
   private volatile JsonRequest m_currentJsonRequest;
@@ -234,6 +235,7 @@ public class UiSession implements IUiSession {
 
       // Remember the store here, because getting it from an invalidated httpSession does not work (there might even be deadlocks!)
       m_sessionStore = getHttpSessionHelper().getSessionStore(httpSession);
+      m_nonce = jsonStartupReq.getNonce();
 
       // Look up the requested client session (create and start a new one if necessary)
       m_clientSession = getOrCreateClientSession(httpSession, req, jsonStartupReq);
@@ -1052,7 +1054,7 @@ public class UiSession implements IUiSession {
 
     JSONObject json = new JSONObject();
     if (links.size() == 1) {
-      json.put("link", links.get(0));
+      json.put("link", links.getFirst());
     }
     else {
       JSONArray array = new JSONArray();
@@ -1474,6 +1476,10 @@ public class UiSession implements IUiSession {
     }
     ISessionStore sessionStore = getHttpSessionHelper().getSessionStore(httpSession);
     return sessionStore.getUiSession(uiSessionId);
+  }
+
+  public String getNonce() {
+    return m_nonce;
   }
 
   private static class P_RootAdapter extends AbstractJsonAdapter<Object> {

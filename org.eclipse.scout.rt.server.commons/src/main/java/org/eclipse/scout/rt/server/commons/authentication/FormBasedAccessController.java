@@ -32,6 +32,7 @@ import org.eclipse.scout.rt.platform.util.Pair;
 import org.eclipse.scout.rt.platform.util.SleepUtil;
 import org.eclipse.scout.rt.platform.util.StringUtility;
 import org.eclipse.scout.rt.server.commons.servlet.HttpServletControl;
+import org.eclipse.scout.rt.server.commons.servlet.cache.HttpCacheControl;
 
 /**
  * Authenticator for Form-based authentication. This authenticator is designed to collaborate with
@@ -185,9 +186,7 @@ public class FormBasedAccessController implements IAccessController {
 
   protected void setDefaultHeaders(HttpServletRequest request, HttpServletResponse response) {
     // Never cache authentication requests.
-    response.setHeader("Cache-Control", "private, no-store, no-cache, max-age=0"); // HTTP 1.1
-    response.setHeader("Pragma", "no-cache"); // HTTP 1.0
-    response.setDateHeader("Expires", 0); // prevents caching at the proxy server
+    BEANS.get(HttpCacheControl.class).disableCaching(response);
 
     // requests on /auth should have the default headers as this might also be called using GET which returns a 404 html page (container dependent)
     BEANS.get(HttpServletControl.class).doDefaults(null, request, response);
