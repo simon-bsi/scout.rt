@@ -24,7 +24,7 @@ export class DesktopTab extends SimpleTab<Form> {
 
   protected override _render() {
     super._render();
-    this.$container.addClass('desktop-tab');
+    this.$container.addClass('desktop-tab unfocusable');
     this.$container.on('contextmenu', this._onContextMenu.bind(this));
     this.$container.prependDiv('edge left');
     this.$container.appendDiv('edge right');
@@ -76,9 +76,5 @@ export class DesktopTab extends SimpleTab<Form> {
     let openViews = this.parent.tabs.map(desktopTab => desktopTab.view);
     arrays.remove(openViews, this.view);
     this.session.desktop.cancelViews(openViews);
-  }
-
-  override isTabTarget(): boolean {
-    return super.isTabTarget() && !this.selected;
   }
 }

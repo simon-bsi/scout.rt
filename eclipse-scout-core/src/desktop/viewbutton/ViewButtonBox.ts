@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 import {
-  Desktop, Event, EventHandler, FocusLeftTabTargetKeyStroke, FocusRightTabTargetKeyStroke, HtmlComponent, InitModelOf, KeyStrokeContext, ObjectOrChildModel, OutlineViewButton, PropertyChangeEvent, scout, TabbableCoordinator, ViewButton,
-  ViewButtonBoxEventMap, ViewButtonBoxModel, ViewMenuTab, Widget, widgets
+  Desktop, Event, EventHandler, HtmlComponent, InitModelOf, KeyStrokeContext, ObjectOrChildModel, OutlineViewButton, PropertyChangeEvent, scout, TabbableCoordinator, ViewButton, ViewButtonBoxEventMap, ViewButtonBoxModel, ViewMenuTab,
+  Widget, widgets
 } from '../../index';
 
 export class ViewButtonBox extends Widget implements ViewButtonBoxModel {
@@ -141,7 +141,19 @@ export class ViewButtonBox extends Widget implements ViewButtonBoxModel {
     }
     this._updateVisibility();
     this._updateSelectedMenuButtonVisibility();
-    this.tabbableCoordinator.setItems([this.viewMenuTab?.selectedButton, this.viewMenuTab?.dropdown, ...this.tabButtons].filter(Boolean));
+    this._updateTabbableItems();
+  }
+
+  protected _updateTabbableItems() {
+    let selectedButton;
+    let dropdown;
+    if (this.viewMenuTab.visible) {
+      dropdown = this.viewMenuTab.dropdown;
+      if (!this.viewMenuTab.selected) {
+        selectedButton = this.viewMenuTab.selectedButton;
+      }
+    }
+    this.tabbableCoordinator.setItems([selectedButton, dropdown, ...this.tabButtons].filter(Boolean));
   }
 
   protected _updateVisibility() {
@@ -183,7 +195,9 @@ export class ViewButtonBox extends Widget implements ViewButtonBoxModel {
 
     // TabbableCoordinator would reset it to initial item if a view button is selected,
     // but the button of the view menu is still selected and therefore not a tab target yet, so the focus would be on the dropdown -> reset again
-    this.tabbableCoordinator.resetCurrentItem();
+    // this.tabbableCoordinator.resetCurrentItem();
+
+    this._updateTabbableItems();
   }
 
   protected _onViewButtonPropertyChange(event: PropertyChangeEvent<any, ViewButton>) {

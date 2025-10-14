@@ -424,6 +424,7 @@ export class MenuBar extends Widget implements MenuBarModel {
   }
 
   protected _onMenuItemFocus(event: Event<Menu>) {
+    // TODO CGU remove listener
     this.setTabbableMenu(event.source);
   }
 

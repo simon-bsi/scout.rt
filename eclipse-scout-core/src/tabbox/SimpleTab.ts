@@ -25,6 +25,7 @@ export class SimpleTab<TView extends SimpleTabView = SimpleTabView> extends Widg
   saveNeededVisible: boolean;
   status: Status;
   selected: boolean;
+  overflown: boolean;
   tabbable: boolean;
   $title: JQuery;
   $subTitle: JQuery;
@@ -53,6 +54,8 @@ export class SimpleTab<TView extends SimpleTabView = SimpleTabView> extends Widg
     this.saveNeededVisible = false;
     this.status = null;
     this.selected = false;
+    this.tabbable = false;
+    this.overflown = false;
 
     this.$title = null;
     this.$subTitle = null;
@@ -167,10 +170,16 @@ export class SimpleTab<TView extends SimpleTabView = SimpleTabView> extends Widg
     this.$container.setTabbable(this.tabbable && this.enabledComputed && !Device.get().supportsOnlyTouch());
   }
 
+  setOverflown(overflown: boolean) {
+    this.setProperty('overflown', overflown);
+  }
+
+  protected _renderOverflown() {
+    this.$container.toggleClass('overflown', this.overflown);
+  }
+
   isTabTarget(): boolean {
-    // It is necessary to check for the visibility of the $container because the SimpleTabLayout makes the $container invisible
-    // if a tab is moved into the overflow-menu instead of adjusting the visible property of the tab
-    return this.enabledComputed && this.visible && this.rendered && this.$container.isVisible();
+    return this.enabledComputed && this.visible && !this.overflown;
   }
 
   setClosable(closable: boolean) {
@@ -309,7 +318,6 @@ export class SimpleTab<TView extends SimpleTabView = SimpleTabView> extends Widg
       tooltips.cancel(this.$subTitle);
       tooltips.close(this.$subTitle);
     }
-    event.preventDefault();
   }
 
   protected _onClose(event: JQuery.ClickEvent) {

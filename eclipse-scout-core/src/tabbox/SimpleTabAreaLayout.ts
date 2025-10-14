@@ -29,15 +29,9 @@ export class SimpleTabAreaLayout extends AbstractLayout {
   }
 
   override layout($container: JQuery) {
-    let htmlContainer = this.tabArea.htmlComp,
-      containerSize = htmlContainer.size({
-        exact: true
-      }),
-      $tabs = htmlContainer.$comp.children('.simple-tab'),
-      numTabs = this.tabArea.getTabs().length,
-      smallPrefSize = this.smallPrefSize();
-
-    containerSize = containerSize.subtract(htmlContainer.insets());
+    let htmlContainer = this.tabArea.htmlComp;
+    let smallPrefSize = this.smallPrefSize();
+    let containerSize = htmlContainer.size({exact: true}).subtract(htmlContainer.insets());
 
     this._initSizes();
 
@@ -45,9 +39,10 @@ export class SimpleTabAreaLayout extends AbstractLayout {
     if (this._overflowTab) {
       this._overflowTab.destroy();
     }
-    $tabs.setVisible(true);
+    let tabs = this.tabArea.getVisibleTabs(true);
+    tabs.forEach(tab => tab.setOverflown(false));
     this._overflowTabsIndizes = [];
-    widgets.updateFirstLastMarker(this.tabArea.getTabs());
+    widgets.updateFirstLastMarker(tabs);
 
     // All tabs fit in container -> no overflow menu necessary
     if (smallPrefSize.width <= containerSize.width) {
@@ -64,13 +59,14 @@ export class SimpleTabAreaLayout extends AbstractLayout {
     let numVisibleTabs = Math.floor(containerSize.width / this.tabMinWidth);
 
     let selectedIndex = 0;
-    $tabs.each((i, tab) => {
-      if ($(tab).hasClass('selected')) {
+    tabs.forEach((tab, i) => {
+      if (tab.$container.isSelected()) {
         selectedIndex = i;
       }
     });
 
     // determine visible range
+    let numTabs = tabs.length;
     let rightEnd;
     let leftEnd = selectedIndex - Math.floor(numVisibleTabs / 2);
     if (leftEnd < 0) {
@@ -84,9 +80,9 @@ export class SimpleTabAreaLayout extends AbstractLayout {
       }
     }
 
-    $tabs.each((i, tab) => {
+    tabs.forEach((tab, i) => {
       if (i < leftEnd || i > rightEnd) {
-        $(tab).setVisible(false);
+        tab.setOverflown(true);
         this._overflowTabsIndizes.push(i);
       }
     });

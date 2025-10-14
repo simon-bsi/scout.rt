@@ -120,7 +120,7 @@
     color: @active-color;
   }
 
-  &:focus {
+  &.keyboard-navigation:focus {
     #scout.focus-inset-box-shadow();
   }
 
@@ -131,6 +131,10 @@
     & > .title-line > .title {
       color: @simple-tab-selected-color;
     }
+  }
+
+  &.overflown {
+    display: none;
   }
 }
 

@@ -20,6 +20,11 @@ export class DesktopTabExecKeyStroke extends KeyStroke {
   }
 
   override handle(event: JQuery.KeyboardEventBase) {
-    this.field.findParent(DesktopTabArea).selectTab(this.field);
+    let tabArea = this.field.findParent(DesktopTabArea);
+    if (this.field.selected) {
+      this.field.session.desktop.bringOutlineToFront();
+    } else {
+      tabArea.selectTab(this.field);
+    }
   }
 }

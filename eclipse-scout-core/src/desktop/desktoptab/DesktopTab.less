@@ -101,6 +101,17 @@
     }
   }
 
+  &:focus {
+    box-shadow: none;
+
+    &::after {
+      #scout.pseudo-overlay(4px);
+      border-radius: @desktop-tab-focus-border-radius;
+      pointer-events: none;
+      #scout.focus-inset-box-shadow();
+    }
+  }
+
   &.disabled {
     background-color: transparent;
 

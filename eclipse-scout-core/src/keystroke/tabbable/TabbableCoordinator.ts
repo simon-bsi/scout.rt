@@ -89,19 +89,26 @@ export class TabbableCoordinator extends PropertyEventEmitter implements Tabbabl
    * Sets the current item to the given item which makes it tabbable so it can be focused.
    * The former current item won't be tabbable anymore.
    */
-  setCurrentItem(currentItem: TabbableItem) {
+  setCurrentItem(currentItem: TabbableItem): boolean {
     if (currentItem === this.currentItem) {
       return false;
     }
 
-    if (this.currentItem) {
-      this.currentItem.setTabbable(false);
-    }
+    currentItem?.setTabbable(true);
+
+    let oldItem = this.currentItem;
+    let wasFocused = oldItem && oldItem === this.focusedItem; // Cannot use isFocused() because item may be removed from DOM already
 
     this.setProperty('currentItem', currentItem);
-    if (currentItem) {
-      currentItem.setTabbable(true);
+
+    if (wasFocused) {
+      // If former currentItem was focused, set the focus to the new one to keep it inside the container
+      currentItem?.focus();
     }
+
+    // Remove tabindex from old item _after_ the new current item gets it, otherwise the focus would be temporarily moved to the body if the old item was focused.
+    oldItem?.setTabbable(false);
+
     return true;
   }
 
@@ -117,12 +124,7 @@ export class TabbableCoordinator extends PropertyEventEmitter implements Tabbabl
    * Sets the current item to the {@link initialItem}.
    */
   resetCurrentItem() {
-    let wasFocused = this.currentItem && this.currentItem === this.focusedItem; // Cannot use isFocused() because item may be removed from DOM already
-    let changed = this.setCurrentItem(this.initialItem);
-    if (changed && wasFocused) {
-      // If former currentItem was focused, set the focus to the new one to keep it inside the container
-      this.currentItem?.focus();
-    }
+    this.setCurrentItem(this.initialItem);
   }
 
   protected _isResetItemNecessary(newItem: TabbableItem) {
@@ -162,12 +164,13 @@ export class TabbableCoordinator extends PropertyEventEmitter implements Tabbabl
 
   protected _onParentFocusIn(event: JQuery.FocusInEvent) {
     let target = event.target;
-    if (target === this.currentItem?.$container[0]) {
+    if (target === this.currentItem?.$container?.[0]) {
       this._onCurrentItemFocus();
     }
   }
 
   protected _onActionItemPropertyChange(event: PropertyChangeEvent<any, Action>) {
+    // Listen to properties which could potentially influence the result of item.isTabTarget()
     if (scout.isOneOf(event.propertyName, 'overflown', 'enabledComputed', 'visible', 'selected', 'hidden')) { // 'hidden' belongs to the EllipsisMenu
       if (this._isResetItemNecessary(event.source)) {
         this.resetCurrentItem();

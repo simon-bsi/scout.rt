@@ -100,7 +100,7 @@ export class ViewButton extends Action implements ViewButtonModel {
   }
 
   override isTabTarget(): boolean {
-    return super.isTabTarget() && !this.selected;
+    return super.isTabTarget();
   }
 
   protected _onDesktopInBackgroundChange(event: PropertyChangeEvent<boolean, Desktop>) {

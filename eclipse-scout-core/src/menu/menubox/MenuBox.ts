@@ -25,7 +25,7 @@ export class MenuBox extends Widget implements MenuBoxModel {
     super();
     this.compact = false;
     this.menus = [];
-    this.uiMenuCssClass = 'menu-box-item prevent-initial-focus';
+    this.uiMenuCssClass = 'menu-box-item';
     this._addWidgetProperties('menus');
   }
 
@@ -74,7 +74,10 @@ export class MenuBox extends Widget implements MenuBoxModel {
   }
 
   protected _renderMenus() {
-    this.menus.forEach(menu => menu.render());
+    this.menus.forEach(menu => {
+      menu.render();
+      menu.$container.addClass('prevent-initial-focus'); // Cannot be added to uiCssClass otherwise it would be put on the popup as well.
+    });
     this.invalidateLayoutTree();
   }
 

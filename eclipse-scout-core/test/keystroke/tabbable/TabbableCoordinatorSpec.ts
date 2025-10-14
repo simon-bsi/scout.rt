@@ -191,7 +191,7 @@ describe('TabbableCoordinator', () => {
     });
   });
 
-  describe('resetCurrentItem', () => {
+  describe('setCurrentItem', () => {
     it('focuses the new current item if it was focused before', () => {
       // Use case: if the currently focused item is removed or not a tab target anymore, the focus should stay in the tabbable group and not reset to another widget or event the body
       let actions = createActions();
@@ -201,21 +201,23 @@ describe('TabbableCoordinator', () => {
       expect(tabbableCoordinator.currentItem).toBe(actions[0]);
       expect(actions[0].isFocused()).toBe(false);
 
-      // Use case: a toggle menu that is not a tab target anymore if it is selected.
-      // In this spec, enabled is used instead of selected.
+      actions[0].focus();
+      expect(actions[0].isFocused()).toBe(true);
+
       tabbableCoordinator.setCurrentItem(actions[1]);
-      actions[1].focus();
       expect(actions[1].isFocused()).toBe(true);
 
+      // Use case: a toggle menu that is not a tab target anymore if it is selected.
+      // In this spec, enabled is used instead of selected.
+      // property change calls resetCurrentItem
       actions[1].setEnabled(false);
       expect(actions[0].isFocused()).toBe(true);
 
       // The same should happen if the item is removed completely
       // Use case: focus is on ellipsis menu in menu box and ellipsis menu removed because user resizes the screen
+      // setItems calls resetCurrentItem
       tabbableCoordinator.setCurrentItem(actions[2]);
-      actions[2].focus();
       expect(actions[2].isFocused()).toBe(true);
-
       actions[2].remove();
       tabbableCoordinator.setItems([actions[0], actions[1]]);
       expect(actions[0].isFocused()).toBe(true);

@@ -104,10 +104,21 @@
     &:not(.in-background) {
       width: 100%;
     }
+
+    &:focus {
+      box-shadow: none;
+
+      &::after {
+        #scout.pseudo-overlay(4px);
+        border-radius: @view-tab-selected-border-radius;
+        pointer-events: none;
+        #scout.focus-inset-box-shadow();
+      }
+    }
   }
 
   &:focus {
-    #scout.focus-box-shadow();
+    #scout.focus-inset-box-shadow();
   }
 
   &.disabled {

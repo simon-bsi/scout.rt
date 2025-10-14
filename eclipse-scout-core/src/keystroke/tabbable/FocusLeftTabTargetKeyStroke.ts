@@ -38,6 +38,7 @@ export class FocusLeftTabTargetKeyStroke extends KeyStroke {
         if (lastValidItem) {
           this.tabbableCoordinator.setCurrentItem(lastValidItem);
           lastValidItem.focus();
+          lastValidItem.$container.addClass('keyboard-navigation');
         }
         break;
       }

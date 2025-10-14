@@ -27,6 +27,7 @@ export class SimpleTabArea<TView extends SimpleTabView = SimpleTabView> extends 
   displayStyle: SimpleTabAreaDisplayStyle;
   tabs: SimpleTab<TView>[];
   tabbableCoordinator: TabbableCoordinator;
+  selectOnFocus = true;
 
   protected _selectedViewTab: SimpleTab<TView>;
   protected _tabClickHandler: EventHandler<Event<SimpleTab<TView>>>;
@@ -36,14 +37,21 @@ export class SimpleTabArea<TView extends SimpleTabView = SimpleTabView> extends 
     this.displayStyle = SimpleTabArea.DisplayStyle.DEFAULT;
     this.tabs = [];
     this._selectedViewTab = null;
-    this.tabbableCoordinator = scout.create(TabbableCoordinator, {parent: this});
+    this._tabClickHandler = this._onTabClick.bind(this);
     this._addWidgetProperties(['tabs']);
   }
 
   protected override _init(model: InitModelOf<this>) {
     super._init(model);
 
-    this._tabClickHandler = this._onTabClick.bind(this);
+    this.tabbableCoordinator = scout.create(TabbableCoordinator, {parent: this});
+    if (this.selectOnFocus) {
+      this.tabbableCoordinator.on('propertyChange:currentItem', event => {
+        if (event.newValue instanceof SimpleTab) {
+          this.selectTab(event.newValue);
+        }
+      });
+    }
   }
 
   protected override _createKeyStrokeContext(): KeyStrokeContext {
@@ -105,13 +113,16 @@ export class SimpleTabArea<TView extends SimpleTabView = SimpleTabView> extends 
     return this.tabs;
   }
 
-  getVisibleTabs(): SimpleTab<TView>[] {
+  /**
+   * @param true to also return the visible tabs that are currently overflown. Default is false.
+   */
+  getVisibleTabs(includeOverflown = false): SimpleTab<TView>[] {
     return this.tabs.filter(tab => {
-      // Layout operates on dom elements directly -> check dom visibility
-      if (tab.$container) {
-        return tab.$container.isVisible();
+      let visible = tab.visible;
+      if (!includeOverflown) {
+        visible &&= !tab.overflown;
       }
-      return tab.visible;
+      return visible;
     });
   }
 
@@ -122,13 +133,14 @@ export class SimpleTabArea<TView extends SimpleTabView = SimpleTabView> extends 
     this.deselectTab(this._selectedViewTab);
     this._selectedViewTab = viewTab;
     if (viewTab) {
+      if (this.selectOnFocus) {
+        this.tabbableCoordinator.setCurrentItem(viewTab);
+      }
       // Select the new view tab.
       viewTab.select();
     }
-    this.trigger('tabSelect', {
-      viewTab: viewTab
-    });
-    if (viewTab && viewTab.rendered && !viewTab.$container.isVisible()) {
+    this.trigger('tabSelect', {viewTab});
+    if (viewTab?.overflown) {
       this.invalidateLayoutTree();
     }
   }

@@ -150,7 +150,8 @@ export class ViewMenuTab extends Widget implements ViewMenuTabModel {
     viewButton.mirror({
       delegateEventsToOriginal: ['acceptInput', 'action'],
       delegateAllPropertiesToClone: true,
-      delegateAllPropertiesToOriginal: true
+      delegateAllPropertiesToOriginal: true,
+      excludePropertiesToOriginal: ['selected']
     }, clone);
 
     this._setProperty('selectedButton', clone);
@@ -185,7 +186,6 @@ export class ViewMenuTab extends Widget implements ViewMenuTabModel {
 
   setSelected(selected: boolean) {
     this.setProperty('selected', selected);
-    this.selectedButton?.setSelected(selected);
   }
 
   protected _renderSelected() {
