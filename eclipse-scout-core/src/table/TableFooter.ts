@@ -8,8 +8,11 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 import {
-  aria, Event, EventHandler, fields, FocusFilterFieldKeyStroke, FocusLeftTabTargetKeyStroke, FocusRightTabTargetKeyStroke, graphics, HtmlComponent, InitModelOf, InputFieldKeyStrokeContext, KeyStrokeContext, MenuBarLayout,
-  PropertyChangeEvent, scout, SomeRequired, Status, strings, Table, TableControl, TableFilterAddedEvent, TableFilterRemovedEvent, TableFooterLayout, TableFooterModel, TableMaxResultsHelper, TableRowsInsertedEvent, TableRowsSelectedEvent,
+  aria, Event, EventHandler, fields, FocusFilterFieldKeyStroke, FocusLeftTabTargetKeyStroke, FocusRightTabTargetKeyStroke, graphics, HtmlComponent, InitModelOf, InputFieldKeyStrokeContext, KeyStrokeContext, MenuBarLayout, ObjectType,
+  PropertyChangeEvent, scout, SomeRequired, Status, strings, Table, TableControl, TableFilterAddedEvent, TableFilterRemovedEvent, TableFooterLayout, TableFooterModel, TableInfoFilterTooltip, TableInfoLoadTooltip, TableInfoSelectionTooltip,
+  TableMaxResultsHelper,
+  TableRowsInsertedEvent,
+  TableRowsSelectedEvent,
   TableTextUserFilter, TableUserFilter, Tooltip, Widget
 } from '../index';
 import $ from 'jquery';
@@ -515,7 +518,7 @@ export class TableFooter extends Widget implements TableFooterModel {
     }
   }
 
-  protected _toggleTableInfoTooltip($info: JQuery, tooltipType: string) {
+  protected _toggleTableInfoTooltip($info: JQuery, tooltipType: ObjectType<Tooltip>) {
     if (this._tableInfoTooltip) {
       this._tableInfoTooltip.destroy();
     } else {
@@ -809,7 +812,7 @@ export class TableFooter extends Widget implements TableFooterModel {
       return;
     }
     if (this._compactStyle) {
-      this._toggleTableInfoTooltip(this._$infoLoad, 'TableInfoLoadTooltip');
+      this._toggleTableInfoTooltip(this._$infoLoad, TableInfoLoadTooltip);
     } else {
       let numRows = this.table.rows.length;
       let estRows = this.table.estimatedRowCount;
@@ -824,7 +827,7 @@ export class TableFooter extends Widget implements TableFooterModel {
 
   protected _onInfoFilterClick() {
     if (this._compactStyle) {
-      this._toggleTableInfoTooltip(this._$infoFilter, 'TableInfoFilterTooltip');
+      this._toggleTableInfoTooltip(this._$infoFilter, TableInfoFilterTooltip);
     } else {
       this.table.resetUserFilter();
     }
@@ -832,7 +835,7 @@ export class TableFooter extends Widget implements TableFooterModel {
 
   protected _onInfoSelectionClick() {
     if (this._compactStyle) {
-      this._toggleTableInfoTooltip(this._$infoSelection, 'TableInfoSelectionTooltip');
+      this._toggleTableInfoTooltip(this._$infoSelection, TableInfoSelectionTooltip);
     } else {
       this.table.toggleSelection();
     }
