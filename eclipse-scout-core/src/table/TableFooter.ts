@@ -116,6 +116,7 @@ export class TableFooter extends Widget implements TableFooterModel {
 
     // --- table controls section ---
     this._$controls = this.$container.appendDiv('table-controls');
+    aria.role(this._$controls, 'toolbar');
 
     // --- info section ---
     this._$info = this.$container.appendDiv('table-info');

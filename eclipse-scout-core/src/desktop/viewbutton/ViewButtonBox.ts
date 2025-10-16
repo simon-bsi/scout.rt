@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 import {
+  aria,
   Desktop, Event, EventHandler, HtmlComponent, InitModelOf, KeyStrokeContext, ObjectOrChildModel, OutlineViewButton, PropertyChangeEvent, scout, TabbableCoordinator, ViewButton, ViewButtonBoxEventMap, ViewButtonBoxModel, ViewMenuTab,
   Widget, widgets
 } from '../../index';
@@ -62,6 +63,7 @@ export class ViewButtonBox extends Widget implements ViewButtonBoxModel {
 
   protected override _render() {
     this.$container = this.$parent.appendDiv('view-button-box');
+    aria.role(this.$container, 'toolbar');
     this.htmlComp = HtmlComponent.install(this.$container, this.session);
 
     this.viewMenuTab.render();

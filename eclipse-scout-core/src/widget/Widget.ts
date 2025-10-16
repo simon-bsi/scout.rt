@@ -2126,9 +2126,9 @@ export class Widget extends PropertyEventEmitter implements WidgetModel, ObjectW
    */
   protected _onFocusIn(event: FocusEvent | JQuery.FocusInEvent) {
     // do not track focus events during rendering to avoid initial focus to be restored.
-    // if (this.rendering) {
-    //   return;
-    // }
+    if (this.rendering) {
+      return;
+    }
     if (this.$container.has(event.target)) {
       this._$lastFocusedElement = $(event.target);
     }
