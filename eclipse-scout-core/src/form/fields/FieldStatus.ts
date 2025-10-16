@@ -8,7 +8,8 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 import {
-  aria, arrays, ContextMenuPopup, EventHandler, FieldStatusEventMap, FieldStatusExecKeyStroke, FieldStatusModel, FormField, FormFieldStatusPosition, HierarchyChangeEvent, HtmlComponent, KeyStrokeContext, Menu, PropertyChangeEvent, scout,
+  aria, arrays, ContextMenuPopup, EventHandler, FieldStatusEventMap, FieldStatusExecKeyStroke, FieldStatusModel, focusUtils, FormField, FormFieldStatusPosition, HierarchyChangeEvent, HtmlComponent, KeyStrokeContext, Menu,
+  PropertyChangeEvent, scout,
   Status, StatusOrModel, strings, Tooltip, Widget
 } from '../../index';
 
@@ -59,6 +60,10 @@ export class FieldStatus extends Widget implements FieldStatusModel {
       .on('mousedown', this._onStatusMouseDown.bind(this))
       .unfocusable();
     this.htmlComp = HtmlComponent.install(this.$container, this.session);
+    aria.role(this.$container, 'button');
+    aria.hasPopup(this.$container, 'menu');
+    aria.expanded(this.$container, false);
+    this._updateVisibility();
   }
 
   protected override _remove() {
@@ -77,6 +82,11 @@ export class FieldStatus extends Widget implements FieldStatusModel {
   protected override _renderProperties() {
     super._renderProperties();
     this._renderPosition();
+  }
+
+  protected override _renderEnabled() {
+    super._renderEnabled();
+    this.$container.setTabbable(this.enabledComputed);
   }
 
   update(status: StatusOrModel, menus: Menu | Menu[], autoRemove: boolean, showStatus?: boolean) {
@@ -105,6 +115,17 @@ export class FieldStatus extends Widget implements FieldStatusModel {
     if (!this.updating) {
       this._updatePopup();
     }
+    this._updateAriaLabel();
+    this._updateVisibility();
+  }
+
+  protected _updateVisibility() {
+    this.$container.toggleClass('invisible', !this.menus.length && !this.status);
+  }
+
+  protected _updateAriaLabel() {
+    let hasMenus = this.menus.length > 0;
+    aria.label(this.$container, hasMenus ? this.session.text('ui.MoreActions') : this.session.text('ui.Tooltip'));
   }
 
   setPosition(position: FormFieldStatusPosition) {
@@ -131,12 +152,8 @@ export class FieldStatus extends Widget implements FieldStatusModel {
     if (!this.updating) {
       this._updatePopup();
     }
-    let hasMenus = this.menus.length > 0;
-    aria.label(this.$container, hasMenus ? this.session.text('ui.MoreActions') : null);
-    aria.role(this.$container, hasMenus ? 'button' : null);
-    aria.hasPopup(this.$container, hasMenus ? 'menu' : null);
-    aria.expanded(this.$container, hasMenus ? !!this.contextMenu : null);
-    this.$container.setTabbable(hasMenus);
+    this._updateAriaLabel();
+    this._updateVisibility();
   }
 
   setAutoRemove(autoRemove: boolean) {
@@ -215,10 +232,14 @@ export class FieldStatus extends Widget implements FieldStatusModel {
       this.tooltip.render();
       aria.role(this.tooltip.$content, 'alert');
       this.$container.addClass('selected');
+      aria.expanded(this.$container, true);
+      aria.linkElementWithControls(this.$container, this.tooltip.$container);
       this.tooltip.one('destroy', () => {
         this.tooltip = null;
         if (this.$container) {
           this.$container.removeClass('selected');
+          aria.expanded(this.$container, false);
+          aria.removeControls(this.$container);
         }
       });
     }
@@ -252,6 +273,7 @@ export class FieldStatus extends Widget implements FieldStatusModel {
     });
     this.contextMenu.open();
     this.$container.addClass('selected');
+    aria.expanded(this.$container, true);
     aria.linkElementWithControls(this.$container, this.contextMenu.$container);
     this.contextMenu.one('destroy', () => {
       this.contextMenu = null;
@@ -261,7 +283,6 @@ export class FieldStatus extends Widget implements FieldStatusModel {
         aria.removeControls(this.$container);
       }
     });
-    aria.expanded(this.$container, true);
   }
 
   hidePopup() {
@@ -316,11 +337,25 @@ export class FieldStatus extends Widget implements FieldStatusModel {
 
   doAction() {
     this.togglePopup();
+    let withFocusContext = false;
+
     // Ensure the user can use keyboard to select the menus inside the tooltip.
     // Ideally, a tooltip would always be a focus context if it had menus, but some status tooltips will be opened during field input.
     // In that case we do not want the tooltip to take the focus away from the input
     // -> Only do it when the user explicitly requested the opening of the tooltip.
-    this.tooltip?.setWithFocusContext(this.menus.length > 0);
+    withFocusContext = this.menus.length > 0;
+
+    // When the tooltip was opened using keyboard it should be possible to close it with ESC.
+    // Context menus need to be closed with ESC as well -> makes it consistent and user does not accidentally close the form.
+    // -> If the field status is focused, it is safe to move the focus to the tooltip.
+    //    Otherwise, keep the focus where it is, the user may want to have the tooltip open while writing.
+    withFocusContext ||= focusUtils.isActiveElement(this.$container);
+    this.tooltip?.setWithFocusContext(withFocusContext);
+
+    // Remove 'alert' role to prevent a screen reader from reading it twice if it gains focus
+    if (withFocusContext) {
+      aria.role(this.tooltip?.$content, null);
+    }
   }
 
   protected _updateTooltipVisibility(parent: Widget) {

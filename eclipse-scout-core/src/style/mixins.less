@@ -194,7 +194,7 @@
   .status {
     display: flex;
     align-items: center;
-    visibility: hidden;
+    cursor: pointer;
     --icon: '';
     --color: inherit;
     --hover-color: @hover-color;
@@ -231,8 +231,6 @@
   }
 
   .menu-status {
-    visibility: visible;
-    cursor: pointer;
     --icon: @icon-ellipsis-v;
     --color: @status-menu-color;
     --hover-color: @status-menu-hover-color;
@@ -241,8 +239,6 @@
 
   .tooltip-status,
   .info-status {
-    visibility: visible;
-    cursor: pointer;
     --icon: @icon-info;
     --color: @status-info-color;
     --hover-color: @status-info-hover-color;
@@ -250,8 +246,6 @@
   }
 
   .ok-status {
-    visibility: visible;
-    cursor: pointer;
     --icon: @icon-info;
     --color: @status-ok-color;
     --hover-color: @status-ok-hover-color;
@@ -259,8 +253,6 @@
   }
 
   .warning-status {
-    visibility: visible;
-    cursor: pointer;
     --icon: @icon-exclamation-mark-circle;
     --color: @status-warning-color;
     --hover-color: @status-warning-hover-color;
@@ -268,8 +260,6 @@
   }
 
   .error-status {
-    visibility: visible;
-    cursor: pointer;
     --icon: @icon-exclamation-mark-circle;
     --color: @status-error-color;
     --hover-color: @status-error-hover-color;
