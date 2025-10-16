@@ -125,7 +125,16 @@ export class FieldStatus extends Widget implements FieldStatusModel {
 
   protected _updateAriaLabel() {
     let hasMenus = this.menus.length > 0;
-    aria.label(this.$container, hasMenus ? this.session.text('ui.MoreActions') : this.session.text('ui.Tooltip'));
+
+    let label = this.session.text('ui.MoreInformation');
+    if (hasMenus) {
+      label = this.session.text('ui.MoreActions');
+    } else if (this.status?.isWarning()) {
+      label = this.session.text('ui.Warning');
+    } else if (this.status?.isError()) {
+      label = this.session.text('ui.ErrorMessage');
+    }
+    aria.label(this.$container, label);
   }
 
   setPosition(position: FormFieldStatusPosition) {
