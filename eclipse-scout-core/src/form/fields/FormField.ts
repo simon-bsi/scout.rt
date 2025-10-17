@@ -222,6 +222,16 @@ export class FormField extends Widget implements FormFieldModel {
     this._setGridData(this.gridData);
     this._updateEmpty();
     this._watchFieldHierarchy();
+    this.fieldStatus = this._createFieldStatus();
+  }
+
+  protected _createFieldStatus(): FieldStatus {
+    return scout.create(FieldStatus, {
+      parent: this,
+      position: this.statusPosition,
+      // This will be done by _updateFieldStatus again, but doing it here prevents unnecessary layout invalidations later on
+      visible: this._computeStatusVisible()
+    });
   }
 
   protected override _destroy() {
@@ -454,32 +464,21 @@ export class FormField extends Widget implements FormFieldModel {
 
   /** @internal */
   _renderErrorStatus() {
-    let hasStatus = !!this._errorStatus();
-    let statusClass = this._errorStatusClass();
-
-    this._updateErrorStatusClasses(statusClass, hasStatus);
     this._updateFieldStatus();
+    this._updateErrorStatusClasses();
     this._updateAriaDescAndErrorMessage();
   }
 
-  protected _errorStatusClass(): string {
-    let status = this._errorStatus();
-    let hasStatus = !!status;
-    return (hasStatus && !this._isSuppressStatusField()) ? 'has-' + status.cssClass() : '';
+  protected _updateErrorStatusClasses() {
+    this._updateErrorStatusClassesOnElement(this.$container);
+    this._updateErrorStatusClassesOnElement(this.$field);
   }
 
-  protected _updateErrorStatusClasses(statusClass: string, hasStatus: boolean) {
-    this._updateErrorStatusClassesOnElement(this.$container, statusClass, hasStatus);
-    this._updateErrorStatusClassesOnElement(this.$field, statusClass, hasStatus);
-  }
-
-  protected _updateErrorStatusClassesOnElement($element: JQuery, statusClass: string, hasStatus: boolean) {
+  protected _updateErrorStatusClassesOnElement($element: JQuery) {
     if (!$element) {
       return;
     }
-    $element
-      .removeClass(FormField.SEVERITY_CSS_CLASSES)
-      .addClass(statusClass);
+    this.fieldStatus.updateHasStatus($element, this._isSuppressStatusField());
   }
 
   /** @see FormFieldModel.tooltipText */
@@ -504,9 +503,7 @@ export class FormField extends Widget implements FormFieldModel {
   protected _updateTooltip() {
     let hasTooltipText = this.hasStatusTooltip();
     this.$container.toggleClass('has-tooltip', hasTooltipText);
-    if (this.$field) {
-      this.$field.toggleClass('has-tooltip', hasTooltipText);
-    }
+    this.$field?.toggleClass('has-tooltip', hasTooltipText);
 
     this._updateFieldStatus();
     this._updateAriaDescAndErrorMessage();
@@ -529,7 +526,7 @@ export class FormField extends Widget implements FormFieldModel {
     let status = this._errorStatus();
     let description = status?.message || this.tooltipText;
     let errorSeverity = status?.severity === Status.Severity.ERROR;
-    if (errorSeverity && this.fieldStatus?.tooltip?.$content) {
+    if (errorSeverity && this.fieldStatus.tooltip?.$content) {
       aria.invalid($field, true);
       aria.linkElementWithErrorMessage($field, this.fieldStatus.tooltip.$content);
       description = null; // Also remove description to make it consistent with the visual behavior
@@ -682,29 +679,23 @@ export class FormField extends Widget implements FormFieldModel {
    * The tooltip of the {@link fieldStatus}, if it is shown.
    */
   tooltip(): Tooltip {
-    if (this.fieldStatus) {
-      return this.fieldStatus.tooltip;
-    }
-    return null;
+    return this.fieldStatus.tooltip;
   }
 
   protected _updateFieldStatus() {
-    if (!this.fieldStatus) {
-      return;
-    }
-    // compute status
-    let menus: Menu[],
-      errorStatus = this._errorStatus(),
-      status: Status = null,
-      statusVisible = this._computeStatusVisible(),
-      autoRemove = true;
-
+    let statusVisible = this._computeStatusVisible();
     this.fieldStatus.setPosition(this.statusPosition);
     this.fieldStatus.setVisible(statusVisible);
     if (!statusVisible) {
+      this.fieldStatus.setMenus(null);
+      this.fieldStatus.setStatus(null);
       return;
     }
 
+    let menus: Menu[];
+    let errorStatus = this._errorStatus();
+    let autoRemove = true;
+    let status: Status = null;
     if (errorStatus) {
       // If the field is used as a cell editor in an editable table, then no validation errors should be shown.
       // (parsing and validation will be handled by the cell/column itself)
@@ -726,6 +717,9 @@ export class FormField extends Widget implements FormFieldModel {
       // If there are menus, show them in the tooltip. But only if there is a tooltipText, don't do it if there is an error status.
       // Menus make most likely no sense if an error status is displayed
       menus = this.getContextMenuItems();
+    }
+    if (!this.menusVisible) {
+      menus = [];
     }
 
     this.fieldStatus.update(status, menus, autoRemove, this._isInitialShowStatus());
@@ -922,8 +916,9 @@ export class FormField extends Widget implements FormFieldModel {
   getContextMenuItems(onlyVisible = true): Menu[] {
     let currentMenuTypes = this.getCurrentMenuTypes();
     if (currentMenuTypes.length) {
-      return menuUtil.filter(this.menus, currentMenuTypes, {onlyVisible: onlyVisible, defaultMenuTypes: this.defaultMenuTypes});
-    } else if (onlyVisible) {
+      return menuUtil.filter(this.menus, currentMenuTypes, {onlyVisible, defaultMenuTypes: this.defaultMenuTypes});
+    }
+    if (onlyVisible) {
       return this.menus.filter(menu => menu.visible);
     }
     return this.menus;
@@ -949,8 +944,8 @@ export class FormField extends Widget implements FormFieldModel {
     if (!this.rendered && !this.rendering) {
       return;
     }
-    this.$container.toggleClass('has-menus', this._hasMenus() && this.menusVisible);
     this._updateFieldStatus();
+    this.fieldStatus.updateHasMenus(this.$container);
   }
 
   /** @internal */
@@ -998,9 +993,7 @@ export class FormField extends Widget implements FormFieldModel {
 
   /** @internal */
   _hideStatusMessage() {
-    if (this.fieldStatus) {
-      this.fieldStatus.hideTooltip();
-    }
+    this.fieldStatus.hideTooltip();
   }
 
   protected _renderPreventInitialFocus() {
@@ -1173,27 +1166,20 @@ export class FormField extends Widget implements FormFieldModel {
    * Appends a span element for form-field status to this.$container and sets the this.$status property.
    */
   addStatus() {
-    if (this.fieldStatus) {
+    if (this.fieldStatus.rendered) {
       return;
     }
-    this.fieldStatus = scout.create(FieldStatus, {
-      parent: this,
-      position: this.statusPosition,
-      // This will be done by _updateFieldStatus again, but doing it here prevents unnecessary layout invalidations later on
-      visible: this._computeStatusVisible()
-    });
     this.fieldStatus.render();
     this.$status = this.fieldStatus.$container;
     this._updateFieldStatus();
   }
 
   protected _removeStatus() {
-    if (!this.fieldStatus) {
+    if (!this.fieldStatus.rendered) {
       return;
     }
-    this.fieldStatus.destroy();
+    this.fieldStatus.remove();
     this.$status = null;
-    this.fieldStatus = null;
   }
 
   /**
