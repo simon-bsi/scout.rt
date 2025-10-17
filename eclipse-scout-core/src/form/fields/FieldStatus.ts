@@ -56,7 +56,7 @@ export class FieldStatus extends Widget implements FieldStatusModel {
   }
 
   protected override _render() {
-    this.$container = this.$parent.appendSpan('status')
+    this.$container = this.$parent.appendSpan('status field-status')
       .on('mousedown', this._onStatusMouseDown.bind(this))
       .unfocusable();
     this.htmlComp = HtmlComponent.install(this.$container, this.session);
@@ -64,6 +64,8 @@ export class FieldStatus extends Widget implements FieldStatusModel {
     aria.hasPopup(this.$container, 'menu');
     aria.expanded(this.$container, false);
     this._updateVisibility();
+    this.updateHasStatus();
+    this.updateHasMenus();
   }
 
   protected override _remove() {
@@ -117,6 +119,7 @@ export class FieldStatus extends Widget implements FieldStatusModel {
     }
     this._updateAriaLabel();
     this._updateVisibility();
+    this.updateHasStatus();
   }
 
   protected _updateVisibility() {
@@ -135,6 +138,37 @@ export class FieldStatus extends Widget implements FieldStatusModel {
       label = this.session.text('ui.ErrorMessage');
     }
     aria.label(this.$container, label);
+  }
+
+  /**
+   * @returns the classes based on the status severity or '' if no status is set.
+   * @see Status.cssClass
+   */
+  statusClasses() {
+    let hasStatus = !!this.status;
+    if (!hasStatus) {
+      return '';
+    }
+    return 'has-' + this.status.cssClass();
+  }
+
+  /**
+   * Sets or removes the css classes based on the status severity on the given `$container` or on `this.$container` if no container is provided.
+   *
+   * @param suppress true to don't add the status classes even if there is a status. Default is false.
+   *
+   * @see statusClasses
+   */
+  updateHasStatus($container?: JQuery, suppress = false) {
+    $container = scout.nvl($container, this.$container);
+    $container.removeClass(FormField.SEVERITY_CSS_CLASSES);
+
+    let hasStatus = !!this.status && !suppress;
+    if (!hasStatus) {
+      return;
+    }
+
+    $container.addClass(this.statusClasses());
   }
 
   setPosition(position: FormFieldStatusPosition) {
@@ -163,6 +197,15 @@ export class FieldStatus extends Widget implements FieldStatusModel {
     }
     this._updateAriaLabel();
     this._updateVisibility();
+    this.updateHasMenus();
+  }
+
+  /**
+   * Sets or removes the css class `has-menus` on the given `$container` or on `this.$container` if no container is provided.
+   */
+  updateHasMenus($container?: JQuery) {
+    $container = scout.nvl($container, this.$container);
+    $container.toggleClass('has-menus', !!this.menus.length);
   }
 
   setAutoRemove(autoRemove: boolean) {
@@ -345,6 +388,10 @@ export class FieldStatus extends Widget implements FieldStatusModel {
   }
 
   doAction() {
+    if (!this.enabledComputed) {
+      return;
+    }
+
     this.togglePopup();
     let withFocusContext = false;
 
