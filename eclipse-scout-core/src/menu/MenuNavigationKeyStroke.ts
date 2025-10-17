@@ -18,6 +18,7 @@ export class MenuNavigationKeyStroke extends KeyStroke {
     super();
     this.field = popup;
     this.inheritAccessibility = false;
+    this.repeatable = true;
   }
 
   protected override _accept(event: ScoutKeyboardEvent): boolean {
