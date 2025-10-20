@@ -92,14 +92,9 @@ export class TableFooter extends Widget implements TableFooterModel {
     this._focusFilterFieldKeyStroke = null;
   }
 
-  protected override _createKeyStrokeContext(): KeyStrokeContext {
-    return new KeyStrokeContext();
-  }
-
   protected override _initKeyStrokeContext() {
-    super._initKeyStrokeContext();
-
     this.table.tabbableControlsCoordinator.registerKeyStrokes(this);
+    super._initKeyStrokeContext();
   }
 
   protected override _render() {

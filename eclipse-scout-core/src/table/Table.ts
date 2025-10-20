@@ -208,7 +208,7 @@ export class Table extends Widget implements TableModel, Filterable<TableRow> {
     this.selectedRows = [];
     this.sortEnabled = true;
     this.tableControls = [];
-    this.tabbableControlsCoordinator = scout.create(TabbableCoordinator, {parent: this});
+    this.tabbableControlsCoordinator = scout.create(TabbableCoordinator, {parent: this, autoRegisterKeyStrokes: false});
     this.tableStatusVisible = false;
     this.tableTileGridMediator = null;
     this.tileMode = false;

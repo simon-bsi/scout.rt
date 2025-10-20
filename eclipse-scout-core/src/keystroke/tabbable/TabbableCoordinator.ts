@@ -9,9 +9,8 @@
  */
 
 import {
-  Action, arrays, Event, EventHandler, FocusLeftTabTargetKeyStroke, FocusOptions, FocusRightTabTargetKeyStroke, focusUtils, InitModelOf, KeyStrokeContext, PropertyChangeEvent, PropertyEventEmitter, PropertyEventMap, scout, scrollbars,
-  SomeRequired,
-  Widget
+  Action, aria, arrays, Event, EventHandler, FocusLeftTabTargetKeyStroke, FocusOptions, FocusRightTabTargetKeyStroke, focusUtils, InitModelOf, KeyStrokeContext, PropertyChangeEvent, PropertyEventEmitter, PropertyEventMap, scout, scrollbars,
+  SomeRequired, Widget
 } from '../..';
 
 export class TabbableCoordinator extends PropertyEventEmitter implements TabbableCoordinatorModel {
@@ -24,6 +23,7 @@ export class TabbableCoordinator extends PropertyEventEmitter implements Tabbabl
   items: TabbableItem[] = [];
   currentItem: TabbableItem;
   focusedItem: TabbableItem;
+  autoRegisterKeyStrokes = true;
   initialItemProvider: () => TabbableItem;
   protected _actionItemPropertyChangeHandler: EventHandler<PropertyChangeEvent>;
   protected _parentRenderHandler: EventHandler;
@@ -39,11 +39,15 @@ export class TabbableCoordinator extends PropertyEventEmitter implements Tabbabl
     this._setItems(this.items);
 
     if (this.parent.rendered) {
-      this._attachParentFocusInHandler();
+      this._onParentRender();
     } else {
-      this.parent.one('render', this._parentRenderHandler);
+      this.parent.on('render', this._parentRenderHandler);
     }
     this.parent.one('destroy', () => this.destroy());
+
+    if (this.autoRegisterKeyStrokes) {
+      this.registerKeyStrokes();
+    }
   }
 
   protected _onParentRender() {
@@ -56,6 +60,10 @@ export class TabbableCoordinator extends PropertyEventEmitter implements Tabbabl
     // The items may not belong to the widget that owns the tabbable coordinator and may therefore still be used after the widget itself is destroyed
     // -> ensure listeners are removed
     this.setItems([]);
+
+    if (this.autoRegisterKeyStrokes) {
+      this.unregisterKeyStrokes();
+    }
   }
 
   setItems(items: TabbableItem[]) {
@@ -160,6 +168,10 @@ export class TabbableCoordinator extends PropertyEventEmitter implements Tabbabl
 
   protected _attachParentFocusInHandler() {
     this.parent.$container.on('focusin', event => this._onParentFocusIn(event));
+
+    if (!this.parent.$container.attr('role')) {
+      aria.role(this.parent.$container, 'group'); // TODO CGU is this a good default? should it be configurable. Write spec
+    }
   }
 
   protected _onParentFocusIn(event: JQuery.FocusInEvent) {
@@ -178,12 +190,49 @@ export class TabbableCoordinator extends PropertyEventEmitter implements Tabbabl
     }
   }
 
-  registerKeyStrokes(target: Widget, keyStrokeContext?: KeyStrokeContext) {
+  /**
+   * Registers the keystrokes which allow navigating over the {@link items}.
+   *
+   * If the keystrokes are already registered, they will be unregistered first.
+   *
+   * Also creates a new {@link KeyStrokeContext} on the `target` if no `keyStrokeContext` and the target does not already have one.
+   *
+   * @param target the widget to take the`keyStrokeContext` from if no context is passed. Defaults to {@link parent}.
+   * @param keyStrokeContext the context to register the keystrokes on. Defaults to `target.keyStrokeContext`.
+   */
+  registerKeyStrokes(target?: Widget, keyStrokeContext?: KeyStrokeContext) {
+    target = scout.nvl(target, this.parent);
     keyStrokeContext = scout.nvl(keyStrokeContext, target.keyStrokeContext);
+
+    // Create a keystroke context on the parent if there is none yet.
+    if (!keyStrokeContext && !target.initialized) {
+      // A widget initializes the keystroke context after Widget._init()
+      // Because the coordinator is typically created in the constructor or _init() of the widget,
+      // a keystroke context can be created automatically and will be initialized after _init()
+      keyStrokeContext = new KeyStrokeContext();
+      target.keyStrokeContext = keyStrokeContext;
+    }
+
+    this.unregisterKeyStrokes(target, keyStrokeContext);
     keyStrokeContext.registerKeyStrokes([
       new FocusLeftTabTargetKeyStroke(target, this),
       new FocusRightTabTargetKeyStroke(target, this)
     ]);
+  }
+
+  /**
+   * Unregisters the keystrokes which allow navigating over the {@link items}.
+   *
+   * @param target the widget to take the`keyStrokeContext` from if no context is passed. Defaults to {@link parent}.
+   * @param keyStrokeContext the context to unregister the keystrokes on. Defaults to `target.keyStrokeContext`.
+   */
+  unregisterKeyStrokes(target?: Widget, keyStrokeContext?: KeyStrokeContext) {
+    target = scout.nvl(target, this.parent);
+    keyStrokeContext = scout.nvl(keyStrokeContext, target.keyStrokeContext);
+    let keyStrokes = keyStrokeContext.keyStrokes.filter(keystroke =>
+      keystroke instanceof FocusLeftTabTargetKeyStroke ||
+      keystroke instanceof FocusRightTabTargetKeyStroke);
+    keyStrokeContext.unregisterKeyStrokes(keyStrokes);
   }
 }
 
@@ -219,6 +268,20 @@ export interface TabbableCoordinatorModel {
   parent?: Widget;
   items?: TabbableItem[];
   initialItemProvider?: () => TabbableItem;
+  /**
+   * Defines whether the keystrokes which allow navigating over the {@link items} should be registered automatically on the {@link parent}.
+   *
+   * If set to false, they can still be registered manually using {@link TabbableCoordinator.registerKeyStrokes}.
+   *
+   * If the {@link parent} does not have a {@link KeyStrokeContext},
+   * a new one will be created as long as the {@link TabbableCoordinator} is created before or while the parent is being initialized.
+   *
+   * Default is true.
+   *
+   * @see FocusLeftTabTargetKeyStroke
+   * @see FocusRightTabTargetKeyStroke
+   */
+  autoRegisterKeyStrokes?: boolean;
 }
 
 export interface ItemFocusEvent extends Event<TabbableCoordinator> {

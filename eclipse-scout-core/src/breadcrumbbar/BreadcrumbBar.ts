@@ -34,16 +34,6 @@ export class BreadcrumbBar extends Widget implements BreadcrumbBarModel {
     this._setBreadcrumbItems(this.breadcrumbItems);
   }
 
-  protected override _createKeyStrokeContext(): KeyStrokeContext {
-    return new KeyStrokeContext();
-  }
-
-  protected override _initKeyStrokeContext() {
-    super._initKeyStrokeContext();
-
-    this.tabbableCoordinator.registerKeyStrokes(this);
-  }
-
   protected override _render() {
     this.$container = this.$parent.appendDiv('breadcrumb-bar');
     this.htmlComp = HtmlComponent.install(this.$container, this.session);

@@ -106,16 +106,6 @@ export class MenuBar extends Widget implements MenuBarModel {
     this._detachMenuHandlers();
   }
 
-  protected override _createKeyStrokeContext(): KeyStrokeContext {
-    return new KeyStrokeContext();
-  }
-
-  protected override _initKeyStrokeContext() {
-    super._initKeyStrokeContext();
-
-    this.tabbableCoordinator?.registerKeyStrokes(this);
-  }
-
   protected override _render() {
     this.$container = this.$parent.appendDiv('menubar');
     aria.role(this.$container, 'menubar');

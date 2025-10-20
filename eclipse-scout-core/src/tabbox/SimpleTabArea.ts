@@ -55,16 +55,6 @@ export class SimpleTabArea<TView extends SimpleTabView = SimpleTabView> extends 
     }
   }
 
-  protected override _createKeyStrokeContext(): KeyStrokeContext {
-    return new KeyStrokeContext();
-  }
-
-  protected override _initKeyStrokeContext() {
-    super._initKeyStrokeContext();
-
-    this.tabbableCoordinator.registerKeyStrokes(this);
-  }
-
   protected override _render() {
     this.$container = this.$parent.appendDiv('simple-tab-area');
     aria.role(this.$container, 'tablist');

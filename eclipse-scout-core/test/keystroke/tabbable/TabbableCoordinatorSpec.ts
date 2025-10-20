@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {Action, InitModelOf, keys, KeyStrokeContext, scout, TabbableCoordinator, TabbableItem, Widget} from "../../../src";
+import {Action, FocusLeftTabTargetKeyStroke, FocusRightTabTargetKeyStroke, InitModelOf, keys, KeyStroke, KeyStrokeContext, scout, TabbableCoordinator, TabbableCoordinatorModel, Widget, WidgetModel} from "../../../src";
 import {JQueryTesting} from '../../../src/testing';
 
 describe('TabbableCoordinator', () => {
@@ -27,27 +27,31 @@ describe('TabbableCoordinator', () => {
   }
 
   class ActionBar extends Widget {
-    actions: Action[];
-    tabbableCoordinator = scout.create(TabbableCoordinator, {parent: this});
-
-    protected override _createKeyStrokeContext(): KeyStrokeContext {
-      return new KeyStrokeContext();
-    }
+    declare model: ActionBarModel;
+    actions: Action[] = [];
+    tabbableCoordinator: TabbableCoordinator;
 
     protected override _init(model: InitModelOf<this>) {
       super._init(model);
+      this.tabbableCoordinator = scout.create(TabbableCoordinator, {parent: this, ...model.tabbableCoordinatorModel});
       this.tabbableCoordinator.setItems(this.actions);
-    }
-
-    protected override _initKeyStrokeContext() {
-      super._initKeyStrokeContext();
-      this.tabbableCoordinator.registerKeyStrokes(this);
     }
 
     protected override _render() {
       this.$container = this.$parent.appendDiv();
       this.actions.forEach(action => action.render(this.$container));
     }
+  }
+
+  class ActionBarWithKeyStrokeContext extends ActionBar {
+    protected override _createKeyStrokeContext(): KeyStrokeContext {
+      return new KeyStrokeContext();
+    }
+  }
+
+  interface ActionBarModel extends WidgetModel {
+    actions?: Action[];
+    tabbableCoordinatorModel?: TabbableCoordinatorModel;
   }
 
   describe('currentItem', () => {
@@ -225,6 +229,31 @@ describe('TabbableCoordinator', () => {
       tabbableCoordinator.setCurrentItem(null);
       expect(actions[0].isFocused()).toBe(false);
     });
+
+    it('focuses the new current item even if the parent was re-rendered', () => {
+      let actions = createActions();
+      let actionBar = scout.create(ActionBar, {parent: session.desktop, actions});
+      actions.forEach(action => action.setParent(actionBar));
+      actionBar.render();
+      actions[0].focus();
+      expect(actions[0].isFocused()).toBe(true);
+
+      actionBar.tabbableCoordinator.setCurrentItem(actions[1]);
+      expect(actions[1].isFocused()).toBe(true);
+
+      actionBar.remove();
+      actionBar.render();
+      expect(actionBar.tabbableCoordinator.currentItem).toBe(actions[1]);
+
+      actions[1].focus();
+      expect(actions[1].isFocused()).toBe(true);
+
+      actionBar.tabbableCoordinator.setCurrentItem(actions[2]);
+      expect(actions[2].isFocused()).toBe(true);
+
+      actionBar.tabbableCoordinator.setCurrentItem(actions[0]);
+      expect(actions[0].isFocused()).toBe(true);
+    });
   });
 
   describe('left/right keystrokes', () => {
@@ -288,5 +317,77 @@ describe('TabbableCoordinator', () => {
 
     actionBar.destroy();
     expect(actions[0].events.count()).toBe(initialEventCount);
+  });
+
+  describe('registerKeyStrokes', () => {
+    it('is called during init and registers the navigation keystrokes if autoRegisterKeyStrokes is true', () => {
+      let actionBar = scout.create(ActionBar, {parent: session.desktop});
+      expect(actionBar.keyStrokeContext.keyStrokes.length).toBe(2);
+      expect(actionBar.keyStrokeContext.keyStrokes[0]).toBeInstanceOf(FocusLeftTabTargetKeyStroke);
+      expect(actionBar.keyStrokeContext.keyStrokes[1]).toBeInstanceOf(FocusRightTabTargetKeyStroke);
+
+      let actionBar2 = scout.create(ActionBar, {
+        parent: session.desktop, tabbableCoordinatorModel: {
+          autoRegisterKeyStrokes: false
+        }
+      });
+      expect(actionBar2.keyStrokeContext).toBe(null);
+
+      let actionBar3 = scout.create(ActionBarWithKeyStrokeContext, {
+        parent: session.desktop, tabbableCoordinatorModel: {
+          autoRegisterKeyStrokes: false
+        }
+      });
+      expect(actionBar3.keyStrokeContext.keyStrokes.length).toBe(0);
+    });
+
+    it('creates a keystroke context on the parent if there is none yet', () => {
+      let actionBar = new ActionBar();
+      expect(actionBar.keyStrokeContext).toBe(null);
+      actionBar.init({parent: session.desktop});
+      expect(actionBar.keyStrokeContext).toBeDefined();
+
+      let actionBar2 = new ActionBarWithKeyStrokeContext();
+      let context = actionBar2.keyStrokeContext;
+      expect(actionBar2.keyStrokeContext).not.toBe(null);
+      actionBar2.init({parent: session.desktop});
+      expect(actionBar2.keyStrokeContext).toBe(context); // must not be changed
+    });
+
+    it('registers navigation keystrokes on demand', () => {
+      let actionBar = scout.create(ActionBarWithKeyStrokeContext, {
+        parent: session.desktop, tabbableCoordinatorModel: {
+          autoRegisterKeyStrokes: false
+        }
+      });
+      expect(actionBar.keyStrokeContext.keyStrokes.length).toBe(0);
+
+      actionBar.tabbableCoordinator.registerKeyStrokes();
+      expect(actionBar.keyStrokeContext.keyStrokes.length).toBe(2);
+      expect(actionBar.keyStrokeContext.keyStrokes[0]).toBeInstanceOf(FocusLeftTabTargetKeyStroke);
+      expect(actionBar.keyStrokeContext.keyStrokes[1]).toBeInstanceOf(FocusRightTabTargetKeyStroke);
+
+      actionBar.tabbableCoordinator.registerKeyStrokes();
+      expect(actionBar.keyStrokeContext.keyStrokes.length).toBe(2);
+      expect(actionBar.keyStrokeContext.keyStrokes[0]).toBeInstanceOf(FocusLeftTabTargetKeyStroke);
+      expect(actionBar.keyStrokeContext.keyStrokes[1]).toBeInstanceOf(FocusRightTabTargetKeyStroke);
+    });
+  });
+
+  describe('unregisterKeyStrokes', () => {
+    it('removes the navigation keystrokes', () => {
+      let actionBar = scout.create(ActionBar, {parent: session.desktop});
+      expect(actionBar.keyStrokeContext.keyStrokes.length).toBe(2);
+      expect(actionBar.keyStrokeContext.keyStrokes[0]).toBeInstanceOf(FocusLeftTabTargetKeyStroke);
+      expect(actionBar.keyStrokeContext.keyStrokes[1]).toBeInstanceOf(FocusRightTabTargetKeyStroke);
+
+      let dummyKeyStroke = new KeyStroke();
+      actionBar.registerKeyStrokes([dummyKeyStroke]);
+      expect(actionBar.keyStrokeContext.keyStrokes.length).toBe(3);
+
+      actionBar.tabbableCoordinator.unregisterKeyStrokes();
+      expect(actionBar.keyStrokeContext.keyStrokes.length).toBe(1);
+      expect(actionBar.keyStrokeContext.keyStrokes[0]).toBe(dummyKeyStroke);
+    });
   });
 });

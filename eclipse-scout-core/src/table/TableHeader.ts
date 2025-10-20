@@ -70,16 +70,6 @@ export class TableHeader extends Widget implements TableHeaderModel {
     this.updateMenuBar();
   }
 
-  protected override _createKeyStrokeContext(): KeyStrokeContext {
-    return new KeyStrokeContext();
-  }
-
-  protected override _initKeyStrokeContext() {
-    super._initKeyStrokeContext();
-
-    this.tabbableCoordinator.registerKeyStrokes(this);
-  }
-
   protected override _render() {
     this.$container = this.table.$data.beforeDiv('table-header')
       .cssBorderLeftWidth(this.table.rowBorders.left || '');

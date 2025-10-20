@@ -51,16 +51,6 @@ export class ViewButtonBox extends Widget implements ViewButtonBoxModel {
     this.desktop.on('outlineChange', this._desktopOutlineChangeHandler);
   }
 
-  protected override _createKeyStrokeContext(): KeyStrokeContext {
-    return new KeyStrokeContext();
-  }
-
-  protected override _initKeyStrokeContext() {
-    super._initKeyStrokeContext();
-
-    this.tabbableCoordinator.registerKeyStrokes(this);
-  }
-
   protected override _render() {
     this.$container = this.$parent.appendDiv('view-button-box');
     aria.role(this.$container, 'toolbar');

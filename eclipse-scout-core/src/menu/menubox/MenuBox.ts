@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-import {aria, EllipsisMenu, HtmlComponent, InitModelOf, KeyStrokeContext, Menu, MenuBoxEventMap, MenuBoxLayout, MenuBoxModel, ObjectOrChildModel, scout, TabbableCoordinator, Widget} from '../../index';
+import {aria, EllipsisMenu, HtmlComponent, InitModelOf, Menu, MenuBoxEventMap, MenuBoxLayout, MenuBoxModel, ObjectOrChildModel, scout, TabbableCoordinator, Widget} from '../../index';
 
 export class MenuBox extends Widget implements MenuBoxModel {
   declare model: MenuBoxModel;
@@ -33,16 +33,6 @@ export class MenuBox extends Widget implements MenuBoxModel {
     super._init(options);
     this.tabbableCoordinator = scout.create(TabbableCoordinator, {parent: this});
     this._setMenus(this.menus);
-  }
-
-  protected override _createKeyStrokeContext(): KeyStrokeContext {
-    return new KeyStrokeContext();
-  }
-
-  protected override _initKeyStrokeContext() {
-    super._initKeyStrokeContext();
-
-    this.tabbableCoordinator.registerKeyStrokes(this);
   }
 
   protected override _render() {
