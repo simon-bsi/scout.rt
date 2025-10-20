@@ -134,7 +134,8 @@ export class ViewMenuTab extends Widget implements ViewMenuTabModel {
     if (!clone) {
       clone = scout.create(OutlineViewButton, {
         parent: this,
-        displayStyle: 'TAB'
+        displayStyle: 'TAB',
+        tabbable: false
       });
     }
     if (clone.cloneOf) {
@@ -143,7 +144,9 @@ export class ViewMenuTab extends Widget implements ViewMenuTabModel {
 
     // Link our fake button with the original and apply all the relevant properties (which are stored in cloneProperties, e.g. outline, cssClass, enabled, etc.)
     clone.cloneOf = viewButton;
-    viewButton.cloneProperties.forEach(property => clone.callSetter(property, viewButton[property]));
+    Array.from(viewButton.cloneProperties)
+      .filter(property => property !== 'tabbable') // This property is managed by ViewMenuTab: the selected button must only be tabbable if the view menu is not selected
+      .forEach(property => clone.callSetter(property, viewButton[property]));
 
     // Use default icon if outline does not define one.
     clone.setIconId(viewButton.iconId || this.defaultIconId);
@@ -153,7 +156,7 @@ export class ViewMenuTab extends Widget implements ViewMenuTabModel {
       delegateEventsToOriginal: ['acceptInput', 'action'],
       delegateAllPropertiesToClone: true,
       delegateAllPropertiesToOriginal: true,
-      excludePropertiesToOriginal: ['selected']
+      excludePropertiesToOriginal: ['selected', 'tabbable']
     }, clone);
 
     this._setProperty('selectedButton', clone);

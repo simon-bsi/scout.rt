@@ -779,7 +779,6 @@ export class TableHeaderMenu extends Popup implements TableHeaderMenuModel {
     let $filterActions = this.$filterTableGroup.appendDiv('actions');
     this.filterSortOrderAction = scout.create(Action, {
       parent: this,
-      tabbable: true,
       cssClass: `button borderless table-header-menu-toggle-sort-order ${this.filterSortMode.cssClass}`
     });
     this.filterSortOrderAction.render($filterActions);
@@ -788,7 +787,6 @@ export class TableHeaderMenu extends Popup implements TableHeaderMenuModel {
     this.filterToggleCheckedAction = scout.create(Action, {
       parent: this,
       text: this.session.text(this.filterCheckedMode.text),
-      tabbable: true,
       cssClass: 'button borderless table-header-menu-filter-toggle-checked'
     });
     this.filterToggleCheckedAction.render($filterActions);
