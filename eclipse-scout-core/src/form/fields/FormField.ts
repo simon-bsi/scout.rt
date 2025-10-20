@@ -228,9 +228,7 @@ export class FormField extends Widget implements FormFieldModel {
   protected _createFieldStatus(): FieldStatus {
     return scout.create(FieldStatus, {
       parent: this,
-      position: this.statusPosition,
-      // This will be done by _updateFieldStatus again, but doing it here prevents unnecessary layout invalidations later on
-      visible: this._computeStatusVisible()
+      position: this.statusPosition
     });
   }
 
@@ -1155,6 +1153,8 @@ export class FormField extends Widget implements FormFieldModel {
     if (this.fieldStatus.rendered) {
       return;
     }
+    // This will be done by _updateFieldStatus again, but doing it here prevents unnecessary layout invalidations later on
+    this.fieldStatus.setVisible(this._computeStatusVisible());
     this.fieldStatus.render();
     this.$status = this.fieldStatus.$container;
     this._updateFieldStatus();
